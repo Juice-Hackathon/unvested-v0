@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 pragma solidity ^0.5.16;
 
 import "./CToken.sol";
@@ -6,7 +8,6 @@ import "./Exponential.sol";
 import "./PriceOracle.sol";
 import "./ComptrollerInterface.sol";
 import "./ComptrollerStorage.sol";
-import "./Unitroller.sol";
 
 /**
  * @title Compound's Comptroller Contract
@@ -945,33 +946,6 @@ contract ComptrollerG1 is ComptrollerV1Storage, ComptrollerInterface, Comptrolle
         emit MarketListed(cToken);
 
         return uint(Error.NO_ERROR);
-    }
-
-    function _become(Unitroller unitroller, PriceOracle _oracle, uint _closeFactorMantissa, uint _maxAssets, bool reinitializing) public {
-        require(msg.sender == unitroller.admin(), "only unitroller admin can change brains");
-        uint changeStatus = unitroller._acceptImplementation();
-
-        require(changeStatus == 0, "change not authorized");
-
-        if (!reinitializing) {
-            ComptrollerG1 freshBrainedComptroller = ComptrollerG1(address(unitroller));
-
-            // Ensure invoke _setPriceOracle() = 0
-            uint err = freshBrainedComptroller._setPriceOracle(_oracle);
-            require (err == uint(Error.NO_ERROR), "set price oracle error");
-
-            // Ensure invoke _setCloseFactor() = 0
-            err = freshBrainedComptroller._setCloseFactor(_closeFactorMantissa);
-            require (err == uint(Error.NO_ERROR), "set close factor error");
-
-            // Ensure invoke _setMaxAssets() = 0
-            err = freshBrainedComptroller._setMaxAssets(_maxAssets);
-            require (err == uint(Error.NO_ERROR), "set max asssets error");
-
-            // Ensure invoke _setLiquidationIncentive(liquidationIncentiveMinMantissa) = 0
-            err = freshBrainedComptroller._setLiquidationIncentive(liquidationIncentiveMinMantissa);
-            require (err == uint(Error.NO_ERROR), "set liquidation incentive error");
-        }
     }
 
     /**
