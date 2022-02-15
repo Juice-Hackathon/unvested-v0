@@ -68,12 +68,12 @@ const config: HardhatUserConfig = {
     }
   },
   networks: {
-    mainnet: {
-      url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
-      accounts: [`0x${process.env.PRODUCTION_MAINNET_DEPLOY_PRIVATE_KEY}`],
-      gasPrice: 73 * 1000000000,
-      chainId: 1,
-    },
+    //mainnet: {
+    //  url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+    //  accounts: [`0x${process.env.PRODUCTION_MAINNET_DEPLOY_PRIVATE_KEY}`],
+    //  gasPrice: 73 * 1000000000,
+    //  chainId: 1,
+    //},
     localhost: {
       live: false,
       saveDeployments: true,
@@ -124,16 +124,16 @@ const config: HardhatUserConfig = {
       gasPrice: 5000000000,
       gasMultiplier: 2,
     },*/
-    kovan: {
-      url: `https://kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,
-      accounts: [`0x${process.env.KOVAN_DEPLOY_PRIVATE_KEY}`],
-      chainId: 42,
-      live: true,
-      saveDeployments: true,
-      tags: ["staging"],
-      gasPrice: 20000000000,
-      gasMultiplier: 2,
-    },
+    //kovan: {
+    //  url: `https://kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,
+    //  accounts: [`0x${process.env.KOVAN_DEPLOY_PRIVATE_KEY}`],
+    //  chainId: 42,
+    //  live: true,
+    //  saveDeployments: true,
+    //  tags: ["staging"],
+    //  gasPrice: 20000000000,
+    //  gasMultiplier: 2,
+    //},
     /*moonbase: {
       url: "https://rpc.testnet.moonbeam.network",
       accounts,
