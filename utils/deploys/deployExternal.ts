@@ -81,12 +81,12 @@ export default class DeployExternalContracts {
   }
 
   public async deployVesting(
-    vestingToken,
-    recipient,
-    vestingAmount,
-    vestingBegin,
-    vestingCliff,
-    vestingEnd
+    vestingToken: Address,
+    recipient: Address,
+    vestingAmount: BigNumberish,
+    vestingBegin: number,
+    vestingCliff: number,
+    vestingEnd: number
   ): Promise<Vesting> {
     return await new Vesting__factory(this._deployerSigner)
       .deploy(

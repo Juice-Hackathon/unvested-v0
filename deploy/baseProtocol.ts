@@ -34,8 +34,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "USD Coin",
     "USDC",
   );
+  console.log("Deployed USDC", usdc.address);
 
-  // await compoundFixture.createAndEnableCToken(
+  // TODO: need to debug why this fails 
+  // Error: VM Exception while processing transaction: reverted with reason string 'only admin may initialize the market'
+  // const newCToken = await compoundFixture.createAndEnableCToken(
   //   usdc.address,
   //   initialExchangeRateMantissa,
   //   compoundFixture.comptroller.address,
@@ -46,26 +49,34 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   //   collateralFactor,
   //   currentPrice,
   // );
+  // console.log("Deployed jUSDC", newCToken.address);
+
 
   /*
    * VESTING
    */ 
-  // const vestingToken = await deployHelper.external.deployTokenMock(
-  //   deployer,
-  //   ether(1000000000),
-  //   18,
-  //   "Yearn Finance",
-  //   "YFI",
-  // );
+  const vestingToken = await deployHelper.external.deployTokenMock(
+    deployer,
+    ether(1000000000),
+    18,
+    "Yearn Finance",
+    "YFI",
+  );
+  console.log("Deployed YFI", vestingToken.address);
 
-  // const vestingContract = await deployHelper.external.deployVesting(
-  //   vestingToken,
-  //   deployer, // NOTE: set recipient to deployer which can be configured to a third party later on
-  //   ether(1000), // 1000 YFI vesting amount
-  //   1644937095, // Tuesday, February 15, 2022 10:58:15 PM GMT+08:00
-  //   1644937095, // No cliff TBD
-  //   1708009095 // Thursday, February 15, 2024 2:58:15 PM
-  // );
+  const vestingContract = await deployHelper.external.deployVesting(
+    vestingToken.address,
+    deployer, // NOTE: set recipient to deployer which can be configured to a third party later on
+    ether(1000), // 1000 YFI vesting amount
+    1644937095, // Tuesday, February 15, 2022 10:58:15 PM GMT+08:00
+    1644937095, // No cliff TBD
+    1708009095 // Thursday, February 15, 2024 2:58:15 PM
+  );
+  console.log("Deployed Vesting", vestingContract.address);
+
+  // Transfer 1000 YFI to vesting contract
+  await vestingToken.transfer(vestingContract.address, ether(1000))
+  console.log("Transferred YFI to Vesting");
 };
 
 export default func;
