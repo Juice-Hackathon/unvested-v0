@@ -35,6 +35,8 @@ export class CompoundFixture {
   public async initialize(): Promise<void> {
     this.simplePriceOracle = await this._deployer.external.deploySimplePriceOracle();
 
+    console.log(this.simplePriceOracle.address + "deployed");
+
     this.unitroller = await this._deployer.external.deployUnitroller();
     this.comptroller = await this._deployer.external.deployComptroller();
     await this.unitroller._setPendingImplementation(this.comptroller.address);

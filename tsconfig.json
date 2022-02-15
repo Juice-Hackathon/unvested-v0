@@ -24,7 +24,8 @@
     "./deploy/**/*.ts",
     "./typechain/**/*.ts",
     "./tasks/**/*.ts",
-    "./scripts"
+    "./scripts",
+    "./hardhat.config.ts",
   ],
   "files": [
     "hardhat.config.ts",
