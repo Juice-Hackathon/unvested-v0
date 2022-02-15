@@ -20,6 +20,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const signer = ethers.provider.getSigner(deployer);
   const deployHelper = new DeployHelper(signer);
 
+  /*
+   * PROTOCOL
+   */ 
   const compoundFixture = new CompoundFixture(ethers.provider,deployer);
   await compoundFixture.initialize();
 
@@ -42,6 +45,26 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   //   6,
   //   collateralFactor,
   //   currentPrice,
+  // );
+
+  /*
+   * VESTING
+   */ 
+  // const vestingToken = await deployHelper.external.deployTokenMock(
+  //   deployer,
+  //   ether(1000000000),
+  //   18,
+  //   "Yearn Finance",
+  //   "YFI",
+  // );
+
+  // const vestingContract = await deployHelper.external.deployVesting(
+  //   vestingToken,
+  //   deployer, // NOTE: set recipient to deployer which can be configured to a third party later on
+  //   ether(1000), // 1000 YFI vesting amount
+  //   1644937095, // Tuesday, February 15, 2022 10:58:15 PM GMT+08:00
+  //   1644937095, // No cliff TBD
+  //   1708009095 // Thursday, February 15, 2024 2:58:15 PM
   // );
 };
 

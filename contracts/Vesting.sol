@@ -8,7 +8,7 @@ import "./SafeMath.sol";
 contract Vesting {
     using SafeMath for uint256;
 
-    address public index;
+    address public vestingToken;
     address public recipient;
 
     uint256 public vestingAmount;
@@ -19,18 +19,19 @@ contract Vesting {
     uint256 public lastUpdate;
 
     constructor(
-        address index_,
+        address vestingToken_,
         address recipient_,
         uint256 vestingAmount_,
         uint256 vestingBegin_,
         uint256 vestingCliff_,
         uint256 vestingEnd_
     ) public {
-        require(vestingBegin_ >= block.timestamp, "TreasuryVester.constructor: vesting begin too early");
+        // Commenting this out for simplicity
+        // require(vestingBegin_ >= block.timestamp, "TreasuryVester.constructor: vesting begin too early");
         require(vestingCliff_ >= vestingBegin_, "TreasuryVester.constructor: cliff is too early");
         require(vestingEnd_ > vestingCliff_, "TreasuryVester.constructor: end is too early");
 
-        index = index_;
+        vestingToken = vestingToken_;
         recipient = recipient_;
 
         vestingAmount = vestingAmount_;
@@ -50,11 +51,11 @@ contract Vesting {
         require(block.timestamp >= vestingCliff, "TreasuryVester.claim: not time yet");
         uint256 amount;
         if (block.timestamp >= vestingEnd) {
-            amount = EIP20Interface(index).balanceOf(address(this));
+            amount = EIP20Interface(vestingToken).balanceOf(address(this));
         } else {
             amount = vestingAmount.mul(block.timestamp.sub(lastUpdate)).div(vestingEnd.sub(vestingBegin));
             lastUpdate = block.timestamp;
         }
-        EIP20Interface(index).transfer(recipient, amount);
+        EIP20Interface(vestingToken).transfer(recipient, amount);
     }
 }
