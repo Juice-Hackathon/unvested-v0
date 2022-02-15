@@ -70,7 +70,7 @@ export class CompoundFixture {
       decimals,
     );
 
-    await newCToken["initialize(address,address,address,uint256,string,string,uint8)"](underlying,comptroller,interestRateModel,initialExchangeRateMantissa,name,symbol,decimals);
+    // await newCToken["initialize(address,address,address,uint256,string,string,uint8)"](underlying,comptroller,interestRateModel,initialExchangeRateMantissa,name,symbol,decimals);
 
     await this.comptroller._supportMarket(newCToken.address);
     // Set starting price

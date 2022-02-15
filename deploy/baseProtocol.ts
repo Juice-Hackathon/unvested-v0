@@ -36,20 +36,27 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   );
   console.log("Deployed USDC", usdc.address);
 
-  // TODO: need to debug why this fails 
-  // Error: VM Exception while processing transaction: reverted with reason string 'only admin may initialize the market'
-  // const newCToken = await compoundFixture.createAndEnableCToken(
-  //   usdc.address,
-  //   initialExchangeRateMantissa,
-  //   compoundFixture.comptroller.address,
-  //   compoundFixture.interestRateModel.address,
-  //   'Juice USDC',
-  //   "jUSDC",
-  //   8,
-  //   collateralFactor,
-  //   currentPrice,
-  // );
-  // console.log("Deployed jUSDC", newCToken.address);
+  const newCToken = await compoundFixture.createAndEnableCToken(
+    usdc.address,
+    initialExchangeRateMantissa,
+    compoundFixture.comptroller.address,
+    compoundFixture.interestRateModel.address,
+    'Juice USDC',
+    "jUSDC",
+    8,
+    collateralFactor,
+    currentPrice,
+  );
+  console.log("Deployed and initialized jUSDC", newCToken.address);
+
+  // Approve USDC
+  await usdc.approve(newCToken.address, ether(10000000))
+  console.log("Approved USDC to cUSDC")
+
+  // Mint 10 cUSDC. USDC Decimals = 6
+  // TODO: error re-enter revert
+  // await newCToken.mint(BigNumber.from(10000000));
+  // console.log("Mint cUSDC")
 
   /*
    * VESTING
