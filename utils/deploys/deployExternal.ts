@@ -21,7 +21,7 @@ import { StandardTokenMock__factory } from "../../typechain/factories/StandardTo
 
 import { SimplePriceOracle__factory } from "../../typechain/factories/SimplePriceOracle__factory";
 
-//import { Vesting__factory } from "../../typechain/factories/Vesting__factory";
+import { Vesting__factory } from "../../typechain/factories/Vesting__factory";
 
 
 export default class DeployExternalContracts {
@@ -78,5 +78,24 @@ export default class DeployExternalContracts {
   ): Promise<StandardTokenMock> {
     return await new StandardTokenMock__factory(this._deployerSigner)
       .deploy(initialAccount, initialBalance, name, symbol, decimals);
+  }
+
+  public async deployVesting(
+    vestingToken: Address,
+    recipient: Address,
+    vestingAmount: BigNumberish,
+    vestingBegin: number,
+    vestingCliff: number,
+    vestingEnd: number
+  ): Promise<Vesting> {
+    return await new Vesting__factory(this._deployerSigner)
+      .deploy(
+        vestingToken,
+        recipient,
+        vestingAmount,
+        vestingBegin,
+        vestingCliff,
+        vestingEnd
+      );
   }
 }
