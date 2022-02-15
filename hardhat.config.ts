@@ -4,15 +4,17 @@ import "dotenv/config"
 import "@nomiclabs/hardhat-etherscan"
 import "@nomiclabs/hardhat-solhint"
 import "@tenderly/hardhat-tenderly"
-import "@nomiclabs/hardhat-waffle"
 import "hardhat-abi-exporter"
 import "hardhat-deploy"
 import "hardhat-deploy-ethers"
 import "hardhat-gas-reporter"
 import "hardhat-spdx-license-identifier"
-import "hardhat-typechain"
 import "hardhat-watcher"
 import "solidity-coverage"
+
+import '@typechain/hardhat'
+import '@nomiclabs/hardhat-ethers'
+import "@nomiclabs/hardhat-waffle"
 
 
 import { HardhatUserConfig } from "hardhat/types"
@@ -360,10 +362,11 @@ const config: HardhatUserConfig = {
     project: process.env.TENDERLY_PROJECT!,
     username: process.env.TENDERLY_USERNAME!,
   },
-  typechain: {
-    outDir: "types",
-    target: "ethers-v5",
-  },
+  //typechain: {
+  //  outDir: "typechain",
+  //  target: "ethers-v5",
+  //  externalArtifacts: ["external/**/*.json"],
+  //},
   watcher: {
     compile: {
       tasks: ["compile"],

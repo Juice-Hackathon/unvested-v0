@@ -46,7 +46,8 @@
     "prettier": "prettier --write test/**/*.{ts} && prettier --write contracts/**/*.sol",
     "lint": "yarn prettier && solhint -c .solhint.json contracts/**/*.sol",
     "prepublishOnly": "yarn run build",
-    "chain": "npx hardhat node"
+    "chain": "npx hardhat node",
+    "typechain": "npx hardhat typechain"
   },
   "devDependencies": {
     "@boringcrypto/boring-solidity": "boringcrypto/BoringSolidity#e06e943",
@@ -56,7 +57,7 @@
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@openzeppelin/contracts": "^3.1.0",
     "@tenderly/hardhat-tenderly": "^1.0.0",
-    "@typechain/ethers-v5": "^5.0.0",
+    "@typechain/ethers-v5": "^7.0.1",
     "@types/chai": "^4.2.22",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.10.1",
@@ -73,14 +74,14 @@
     "hardhat-gas-reporter": "^1.0.0",
     "hardhat-preprocessor": "^0.1.0",
     "hardhat-spdx-license-identifier": "^2.0.0",
-    "hardhat-typechain": "^0.3.5",
     "hardhat-watcher": "^2.0.0",
     "prettier": "^2.2.0",
     "prettier-plugin-solidity": "^1.0.0-beta.5",
     "solidity-coverage": "^0.7.13",
     "ts-generator": "^0.1.1",
     "ts-node": "^9.1.1",
-    "typechain": "^4.0.2",
-    "typescript": "^4.2.2"
+    "typechain": "^5.1.2",
+    "typescript": "^4.2.2",
+    "@typechain/hardhat": "^2.3.0"
   }
 }
