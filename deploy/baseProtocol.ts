@@ -5,12 +5,7 @@ import { BigNumber } from "ethers";
 import {
   ether,
 } from "../utils/common/unitsUtils";
-
-const USDC = {
-  137: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", // Matic mainnet
-  80001: "0x6D4dd09982853F08d9966aC3cA4Eb5885F16f2b2", // Matic mumbai
-  42: "0x15758350DECEA0E5A96cFe9024e3f352d039905a", // Kovan
-};
+import DeployHelper from "../utils/deploys";
 
 const collateralFactor = BigNumber.from(0) // 0% LTV as we are not allowing anyone to use USDC as collateral
 const currentPrice = ether(1000000000000) // Compound oracles account for decimals. $1 * 10^18 * 10^18 / 10^6 (USDC decimals)
@@ -21,11 +16,24 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deploy} = deployments;
 
   const {deployer} = await getNamedAccounts();
+  
+  const signer = ethers.provider.getSigner(deployer);
+  const deployHelper = new DeployHelper(signer);
 
   const compoundFixture = new CompoundFixture(ethers.provider,deployer);
   await compoundFixture.initialize();
+
+  // Deploy fake USDC
+  const usdc = await deployHelper.external.deployTokenMock(
+    deployer,
+    ether(1000000000),
+    18,
+    "USD Coin",
+    "USDC",
+  );
+
   // await compoundFixture.createAndEnableCToken(
-  //   USDC[42], // Use Kovan 
+  //   usdc.address,
   //   initialExchangeRateMantissa,
   //   compoundFixture.comptroller.address,
   //   compoundFixture.interestRateModel.address,
