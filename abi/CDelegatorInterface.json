@@ -19,7 +19,6 @@
     "type": "event"
   },
   {
-    "constant": false,
     "inputs": [
       {
         "internalType": "address",
@@ -39,12 +38,10 @@
     ],
     "name": "_setImplementation",
     "outputs": [],
-    "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "constant": true,
     "inputs": [],
     "name": "implementation",
     "outputs": [
@@ -54,7 +51,6 @@
         "type": "address"
       }
     ],
-    "payable": false,
     "stateMutability": "view",
     "type": "function"
   }
