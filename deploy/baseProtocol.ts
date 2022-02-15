@@ -45,7 +45,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   //   compoundFixture.interestRateModel.address,
   //   'Juice USDC',
   //   "jUSDC",
-  //   6,
+  //   8,
   //   collateralFactor,
   //   currentPrice,
   // );
