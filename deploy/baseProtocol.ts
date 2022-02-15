@@ -51,7 +51,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // );
   // console.log("Deployed jUSDC", newCToken.address);
 
-
   /*
    * VESTING
    */ 
