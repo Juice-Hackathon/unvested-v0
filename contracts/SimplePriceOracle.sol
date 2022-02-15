@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.5.16;
+pragma solidity 0.6.10;
 
 import "./PriceOracle.sol";
 import "./CErc20.sol";
@@ -19,7 +19,7 @@ contract SimplePriceOracle is PriceOracle {
         return asset;
     }
 
-    function getUnderlyingPrice(CToken cToken) public view returns (uint) {
+    function getUnderlyingPrice(CToken cToken) public view override returns (uint) {
         return prices[_getUnderlyingAddress(cToken)];
     }
 

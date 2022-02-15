@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.5.16;
+pragma solidity 0.6.10;
 
 /**
  * @title ERC 20 Token Standard Interface
@@ -13,14 +13,14 @@ interface EIP20Interface {
 
     /**
       * @notice Get the total number of tokens in circulation
-      * @return The supply of tokens
+      * @return uint256
       */
     function totalSupply() external view returns (uint256);
 
     /**
      * @notice Gets the balance of the specified address
      * @param owner The address from which the balance will be retrieved
-     * @return The balance
+     * @return balance
      */
     function balanceOf(address owner) external view returns (uint256 balance);
 
@@ -28,7 +28,7 @@ interface EIP20Interface {
       * @notice Transfer `amount` tokens from `msg.sender` to `dst`
       * @param dst The address of the destination account
       * @param amount The number of tokens to transfer
-      * @return Whether or not the transfer succeeded
+      * @return success
       */
     function transfer(address dst, uint256 amount) external returns (bool success);
 
@@ -37,7 +37,7 @@ interface EIP20Interface {
       * @param src The address of the source account
       * @param dst The address of the destination account
       * @param amount The number of tokens to transfer
-      * @return Whether or not the transfer succeeded
+      * @return success
       */
     function transferFrom(address src, address dst, uint256 amount) external returns (bool success);
 
@@ -47,7 +47,7 @@ interface EIP20Interface {
       *  and is subject to issues noted [here](https://eips.ethereum.org/EIPS/eip-20#approve)
       * @param spender The address of the account which may transfer tokens
       * @param amount The number of tokens that are approved (-1 means infinite)
-      * @return Whether or not the approval succeeded
+      * @return success
       */
     function approve(address spender, uint256 amount) external returns (bool success);
 
@@ -55,7 +55,7 @@ interface EIP20Interface {
       * @notice Get the current allowance from `owner` for `spender`
       * @param owner The address of the account which owns the tokens to be spent
       * @param spender The address of the account which may transfer tokens
-      * @return The number of tokens allowed to be spent (-1 means infinite)
+      * @return remaining
       */
     function allowance(address owner, address spender) external view returns (uint256 remaining);
 

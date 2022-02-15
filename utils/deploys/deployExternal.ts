@@ -5,6 +5,7 @@ import {
   Comptroller,
   SimplePriceOracle,
   PriceOracle,
+  StandardTokenMock,
   Unitroller,
   WhitePaperInterestRateModel,
   Vesting
@@ -16,6 +17,7 @@ import { CErc20__factory } from "../../typechain/factories/CErc20__factory";
 import { Comptroller__factory } from "../../typechain/factories/Comptroller__factory";
 import { Unitroller__factory } from "../../typechain/factories/Unitroller__factory";
 import { WhitePaperInterestRateModel__factory } from "../../typechain/factories/WhitePaperInterestRateModel__factory";
+import { StandardTokenMock__factory } from "../../typechain/factories/StandardTokenMock__factory";
 
 import { SimplePriceOracle__factory } from "../../typechain/factories/SimplePriceOracle__factory";
 
@@ -67,4 +69,14 @@ export default class DeployExternalContracts {
     return await new WhitePaperInterestRateModel__factory(this._deployerSigner).deploy(baseRate, multiplier);
   }
 
+  public async deployTokenMock(
+    initialAccount: Address,
+    initialBalance: BigNumberish,
+    decimals: BigNumberish = 18,
+    name: string = "Token",
+    symbol: string = "Symbol"
+  ): Promise<StandardTokenMock> {
+    return await new StandardTokenMock__factory(this._deployerSigner)
+      .deploy(initialAccount, initialBalance, name, symbol, decimals);
+  }
 }

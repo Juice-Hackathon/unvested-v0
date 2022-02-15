@@ -34,12 +34,9 @@ export class CompoundFixture {
 
   public async initialize(): Promise<void> {
     this.simplePriceOracle = await this._deployer.external.deploySimplePriceOracle();
-
-    console.log(this.simplePriceOracle.address + "deployed");
-
     this.unitroller = await this._deployer.external.deployUnitroller();
     this.comptroller = await this._deployer.external.deployComptroller();
-    await this.unitroller._setPendingImplementation(this.comptroller.address);
+    // await this.unitroller._setPendingImplementation(this.comptroller.address);
     await this.comptroller._setPriceOracle(this.simplePriceOracle.address);
     await this.comptroller._setMaxAssets(10);
     await this.comptroller._setCloseFactor(ether(0.5));
@@ -55,7 +52,7 @@ export class CompoundFixture {
   public async createAndEnableCToken(
     underlying: Address,
     initialExchangeRateMantissa: BigNumberish,
-    comptroller: Address = this.unitroller.address,
+    comptroller: Address,
     interestRateModel: Address = this.interestRateModel.address,
     name: string = "CToken",
     symbol: string = "CT",
@@ -74,7 +71,6 @@ export class CompoundFixture {
     );
 
     await newCToken["initialize(address,address,address,uint256,string,string,uint8)"](underlying,comptroller,interestRateModel,initialExchangeRateMantissa,name,symbol,decimals);
-
 
     await this.comptroller._supportMarket(newCToken.address);
     // Set starting price

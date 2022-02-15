@@ -1,5 +1,21 @@
 [
   {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "name_",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "symbol_",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -17,7 +33,7 @@
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "amount",
+        "name": "value",
         "type": "uint256"
       }
     ],
@@ -42,7 +58,7 @@
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "amount",
+        "name": "value",
         "type": "uint256"
       }
     ],
@@ -66,7 +82,7 @@
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "remaining",
+        "name": "",
         "type": "uint256"
       }
     ],
@@ -90,7 +106,7 @@
     "outputs": [
       {
         "internalType": "bool",
-        "name": "success",
+        "name": "",
         "type": "bool"
       }
     ],
@@ -101,7 +117,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "owner",
+        "name": "account",
         "type": "address"
       }
     ],
@@ -109,7 +125,7 @@
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "balance",
+        "name": "",
         "type": "uint256"
       }
     ],
@@ -127,6 +143,54 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "spender",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "subtractedValue",
+        "type": "uint256"
+      }
+    ],
+    "name": "decreaseAllowance",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "spender",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "addedValue",
+        "type": "uint256"
+      }
+    ],
+    "name": "increaseAllowance",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -172,7 +236,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "dst",
+        "name": "recipient",
         "type": "address"
       },
       {
@@ -185,7 +249,7 @@
     "outputs": [
       {
         "internalType": "bool",
-        "name": "success",
+        "name": "",
         "type": "bool"
       }
     ],
@@ -196,12 +260,12 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "src",
+        "name": "sender",
         "type": "address"
       },
       {
         "internalType": "address",
-        "name": "dst",
+        "name": "recipient",
         "type": "address"
       },
       {
@@ -214,7 +278,7 @@
     "outputs": [
       {
         "internalType": "bool",
-        "name": "success",
+        "name": "",
         "type": "bool"
       }
     ],

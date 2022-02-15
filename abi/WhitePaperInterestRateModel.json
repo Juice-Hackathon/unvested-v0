@@ -12,7 +12,6 @@
         "type": "uint256"
       }
     ],
-    "payable": false,
     "stateMutability": "nonpayable",
     "type": "constructor"
   },
@@ -36,7 +35,6 @@
     "type": "event"
   },
   {
-    "constant": true,
     "inputs": [],
     "name": "baseRatePerBlock",
     "outputs": [
@@ -46,12 +44,10 @@
         "type": "uint256"
       }
     ],
-    "payable": false,
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "constant": true,
     "inputs": [],
     "name": "blocksPerYear",
     "outputs": [
@@ -61,12 +57,10 @@
         "type": "uint256"
       }
     ],
-    "payable": false,
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "constant": true,
     "inputs": [
       {
         "internalType": "uint256",
@@ -92,12 +86,10 @@
         "type": "uint256"
       }
     ],
-    "payable": false,
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "constant": true,
     "inputs": [
       {
         "internalType": "uint256",
@@ -128,12 +120,10 @@
         "type": "uint256"
       }
     ],
-    "payable": false,
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "constant": true,
     "inputs": [],
     "name": "isInterestRateModel",
     "outputs": [
@@ -143,12 +133,10 @@
         "type": "bool"
       }
     ],
-    "payable": false,
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "constant": true,
     "inputs": [],
     "name": "multiplierPerBlock",
     "outputs": [
@@ -158,12 +146,10 @@
         "type": "uint256"
       }
     ],
-    "payable": false,
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "constant": true,
     "inputs": [
       {
         "internalType": "uint256",
@@ -189,7 +175,6 @@
         "type": "uint256"
       }
     ],
-    "payable": false,
     "stateMutability": "pure",
     "type": "function"
   }

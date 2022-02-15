@@ -1,6 +1,5 @@
 [
   {
-    "constant": false,
     "inputs": [
       {
         "internalType": "bytes",
@@ -10,21 +9,17 @@
     ],
     "name": "_becomeImplementation",
     "outputs": [],
-    "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "constant": false,
     "inputs": [],
     "name": "_resignImplementation",
     "outputs": [],
-    "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "constant": true,
     "inputs": [],
     "name": "implementation",
     "outputs": [
@@ -34,7 +29,6 @@
         "type": "address"
       }
     ],
-    "payable": false,
     "stateMutability": "view",
     "type": "function"
   }

@@ -9,4 +9,5 @@ export { PriceOracle } from "../../typechain/PriceOracle";
 export { WhitePaperInterestRateModel } from "../../typechain/WhitePaperInterestRateModel";
 
 export { Vesting } from "../../typechain/Vesting";
+export { StandardTokenMock } from "../../typechain/StandardTokenMock";
 
