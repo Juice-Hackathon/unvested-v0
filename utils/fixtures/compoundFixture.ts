@@ -9,7 +9,7 @@ import {
 } from "../contracts/compound";
 import DeployHelper from "../deploys";
 import {
-  Address,
+  Address
 } from "../types";
 import {
   ether,

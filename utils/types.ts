@@ -17,3 +17,4 @@ export type Position = {
 
 export type ContractTransaction = ContractTransactionType;
 export type Wallet = WalletType;
+

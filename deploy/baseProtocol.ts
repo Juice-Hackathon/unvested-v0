@@ -15,7 +15,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {deployments, getNamedAccounts, ethers} = hre;
   const {deploy} = deployments;
 
-  const {deployer} = await getNamedAccounts();
+  const {deployer, lender} = await getNamedAccounts();
   
   const signer = ethers.provider.getSigner(deployer);
   const deployHelper = new DeployHelper(signer);
@@ -25,6 +25,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
    */ 
   const compoundFixture = new CompoundFixture(ethers.provider,deployer);
   await compoundFixture.initialize();
+
+  /*
+   * USDC
+   */ 
+
 
   // Deploy fake USDC
   const usdc = await deployHelper.external.deployTokenMock(
@@ -41,22 +46,36 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     initialExchangeRateMantissa,
     compoundFixture.comptroller.address,
     compoundFixture.interestRateModel.address,
-    'Juice USDC',
-    "jUSDC",
+    'Fulcrum USDC',
+    "fUSDC",
     8,
     collateralFactor,
     currentPrice,
   );
-  console.log("Deployed and initialized jUSDC", newCToken.address);
+  console.log("Deployed and initialized fUSDC", newCToken.address);
 
   // Approve USDC
   await usdc.approve(newCToken.address, ether(10000000))
-  console.log("Approved USDC to cUSDC")
+  console.log("Approved USDC to fUSDC")
 
   // Mint 10 cUSDC. USDC Decimals = 6
   // TODO: error re-enter revert
-  // await newCToken.mint(BigNumber.from(10000000));
-  // console.log("Mint cUSDC")
+
+  //const LenderCToken = await ethers.getContractFactory("CErc20",lender);
+  //const lenderCToken = LenderCToken.attach(newCToken.address);
+
+  //await lenderCToken.mint(BigNumber.from(10000000));
+  //console.log("Minted fUSDC")
+
+  //const balanceFUSDC = await lenderCToken.balanceOf(deployer);
+  
+  //if (BigNumber.from(10000000) == balanceFUSDC) {
+  //    console.log('balance updated');
+  //} else {
+  //    console.log('balance not updated, value: ' + balanceFUSDC.toString());
+ // }
+   
+  
 
   /*
    * VESTING
@@ -83,6 +102,44 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // Transfer 1000 YFI to vesting contract
   await vestingToken.transfer(vestingContract.address, ether(1000))
   console.log("Transferred YFI to Vesting");
+
+
+   /*
+   * Exporting addresses
+   */    
+
+   const addresses = {
+       comptroller: compoundFixture.comptroller.address,
+       unitroller: compoundFixture.unitroller.address,
+       priceOracle: compoundFixture.simplePriceOracle.address,
+       interestRateModel: compoundFixture.interestRateModel.address,
+       usdc: usdc.address,
+       ctoken: newCToken.address,
+       vestingToken: vestingToken.address,
+       vestingContract: vestingContract.address
+   }
+
+   console.log(addresses);
+
+
+   await hre.tenderly.persistArtifacts([{
+      name: "Comptroller",
+      address:compoundFixture.comptroller.address
+    },
+    {
+      name: "CToken",
+      address: newCToken.address
+    },
+    {
+      name: "usdc",
+      address: usdc.address
+    },
+    {
+      name: "unitroller",
+      address: compoundFixture.unitroller.address
+    }
+  ]);
+
 };
 
 export default func;

@@ -67,6 +67,9 @@ const config: HardhatUserConfig = {
   namedAccounts: {
     deployer: {
       default: 0,
+    },
+    lender: {
+      default: 1,
     }
   },
   networks: {
