@@ -6,7 +6,7 @@ import "@nomiclabs/hardhat-solhint"
 import "@tenderly/hardhat-tenderly"
 import "hardhat-abi-exporter"
 import "hardhat-deploy"
-import "hardhat-deploy-ethers"
+
 import "hardhat-gas-reporter"
 import "hardhat-spdx-license-identifier"
 import "hardhat-watcher"
