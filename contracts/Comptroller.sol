@@ -8,12 +8,13 @@ import "./Exponential.sol";
 import "./PriceOracle.sol";
 import "./ComptrollerInterface.sol";
 import "./ComptrollerStorage.sol";
-import { IVestingCollateralVault } from "./interfaces/IVestingCollateralVault.sol";
+import { IVesting } from "./interfaces/IVesting.sol";
+import { VestingContractWrapper } from "./VestingContractWrapper.sol";
+import { IVestingContractWrapper } from "./interfaces/IVestingContractWrapper.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title Compound's Comptroller Contract
- * @author Compound
  * @dev This was the first version of the Comptroller brains.
  *  We keep it so our tests can continue to do the real-life behavior of upgrading from this logic forward.
  */
@@ -31,10 +32,11 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         mapping(address => bool) accountMembership;
     }
 
-    struct VestingCollateralVault {
+    struct VestingContractInfo {
         // Whether or not this vesting contract is listed
         bool isListed;
         bool enabledAsCollateral;
+        address vestingContractWrapper;
     }
 
     /**
@@ -42,7 +44,10 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
      * @dev Used e.g. to determine if a market is supported
      */
     mapping(address => Market) public markets;
-    mapping(address => VestingCollateralVault) public vestingCollateralVaults;
+    mapping(IVesting => VestingContractInfo) public vestingContractInfo;
+
+    // Mapping of account to vesting contract
+    mapping(address => IVesting) public accountToVesting;
 
     /**
      * @notice Emitted when an admin supports a market
@@ -129,41 +134,51 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
     /**
      * @notice Registers vesting contract. Validates the recipient is the vault contract and then sets enabled as collateral to true
      */
-    function register(IVestingCollateralVault _vestingCollateralVault) external {
+    function registerVestingContract(IVesting _vestingContract) external {
         // Require collateral is listed
-        require(vestingCollateralVaults[address(_vestingCollateralVault)].isListed, "Must be listed");
+        require(vestingContractInfo[_vestingContract].isListed, "Must be listed");
 
         // Require collateral is not enabled yet
-        require(!vestingCollateralVaults[address(_vestingCollateralVault)].enabledAsCollateral, "Must be enabled");
+        require(!vestingContractInfo[_vestingContract].enabledAsCollateral, "Must not be enabled");
 
-        // Validate that the recipient of the vesting contract has been set by the owner
-        require(_vestingCollateralVault.vestingContract().recipient() == address(_vestingCollateralVault) , "Please set recipient to vault contract");
-        require(_vestingCollateralVault.originalRecipient() == msg.sender, "Original recipient must be caller");
+        // Validate that the recipient of the vesting contract is this Comptroller
+        require(_vestingContract.recipient() == address(this) , "Recipient must be Comptroller");
+
+        // Validate original recipient is caller. This assumes that vestingContractWrapper is already deployed in _supportCollateralVault
+        require(
+            IVestingContractWrapper(vestingContractInfo[_vestingContract].vestingContractWrapper).originalRecipient() == msg.sender,
+            "Original recipient must be caller"
+        );
 
         // Enable collateral for user in the Comptroller
-        vestingCollateralVaults[address(_vestingCollateralVault)].enabledAsCollateral = true;
+        vestingContractInfo[_vestingContract].enabledAsCollateral = true;
+        accountToVesting[msg.sender] = _vestingContract;
+
+        // Set recipient from this to vesting contract wrapper
+        _vestingContract.setRecipient(vestingContractInfo[_vestingContract].vestingContractWrapper);
     }
 
-    function withdraw(IVestingCollateralVault _vestingCollateralVault) external {
+    function withdrawVestingContract(IVesting _vestingContract) external {
         // Validate that the recipient of the vesting contract has been set by the owner
-        address originalRecipient = _vestingCollateralVault.originalRecipient();
-        require(_vestingCollateralVault.vestingContract().recipient() == address(_vestingCollateralVault) , "Please set recipient to vault contract");
+        address originalRecipient = IVestingContractWrapper(vestingContractInfo[_vestingContract].vestingContractWrapper).originalRecipient();
+        require(_vestingContract.recipient() == address(_vestingContract) , "Please set recipient to vault contract");
         require(originalRecipient == msg.sender , "Original recipient must be caller");
 
         // Validate all debt is repaid to withdraw contract
         // TODO
 
-        // Set enabled collateral to false
-        vestingCollateralVaults[address(_vestingCollateralVault)].enabledAsCollateral = false;
+        // Set enabled collateral to false and delete account to vault mapping
+        delete vestingContractInfo[_vestingContract].enabledAsCollateral;
+        delete accountToVesting[msg.sender];
 
-        // Transfer recipient back to original recipient
-        _vestingCollateralVault.vestingContract().setRecipient(originalRecipient);
+        // Transfer recipient back from wrapper to original recipient
+        IVestingContractWrapper(vestingContractInfo[_vestingContract].vestingContractWrapper).setOriginalRecipient();
 
-        // Transfer existing balance of tokens from vesting vault to original recipient in case tokens were claimed to user
-        IERC20 vestingToken = IERC20(_vestingCollateralVault.vestingToken());
-        uint256 balance = vestingToken.balanceOf(address(_vestingCollateralVault));
+        // Transfer existing balance of tokens FROM vesting vault TO original recipient in case tokens were claimed to user
+        IERC20 vestingToken = IERC20(_vestingContract.vestingToken());
+        uint256 balance = vestingToken.balanceOf(address(_vestingContract));
         vestingToken.transferFrom(
-            address(_vestingCollateralVault),
+            address(_vestingContract),
             originalRecipient,
             balance
         );
@@ -994,21 +1009,33 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
     /**
       * @notice Add the vesting contract collateral and list as collateral
       * @dev Admin function to set isListed and add support for the market
-      * @param _vestingCollateralVault to list as collateral
+      * @param _vestingContract to list as collateral
       * @return uint 0=success, otherwise a failure. (See enum Error for details)
       */
-    function _supportCollateralVault(IVestingCollateralVault _vestingCollateralVault) external returns (uint) {
+    function _supportCollateralVault(IVesting _vestingContract) external returns (uint) {
         if (msg.sender != admin) {
             return fail(Error.UNAUTHORIZED, FailureInfo.SUPPORT_MARKET_OWNER_CHECK);
         }
 
-        require(vestingCollateralVaults[address(_vestingCollateralVault)].isListed, "Vault listed");
+        require(vestingContractInfo[_vestingContract].isListed, "Vault listed");
 
-        _vestingCollateralVault.getVestedAmount(); // Sanity check to make sure its really a vault
+        // Sanity check to make sure its really a vesting contract
+        _vestingContract.vestingBegin();
 
-        vestingCollateralVaults[address(_vestingCollateralVault)] = VestingCollateralVault({
+        // Check if collateral vault is deployed for user
+        VestingContractWrapper vestingContractWrapper;
+        if (vestingContractInfo[_vestingContract].vestingContractWrapper == address(0)) {
+            // Deploy vesting collateral wrapper
+            vestingContractWrapper = new VestingContractWrapper(
+                _vestingContract,
+                this
+            );
+        }
+
+        vestingContractInfo[_vestingContract] = VestingContractInfo({
             isListed: true,
-            enabledAsCollateral: false
+            enabledAsCollateral: false,
+            vestingContractWrapper: address(vestingContractWrapper)
         });
 
         return uint(Error.NO_ERROR);
