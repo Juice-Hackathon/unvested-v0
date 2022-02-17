@@ -30,7 +30,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const usdc = await deployHelper.external.deployTokenMock(
     deployer,
     ether(1000000000),
-    18,
+    6,
     "USD Coin",
     "USDC",
   );
