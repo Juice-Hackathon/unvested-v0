@@ -129,7 +129,7 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
     /**
      * @notice Registers vesting contract. Validates the recipient is the vault contract and then sets enabled as collateral to true
      */
-    function register(IVestingCollateralVault _vestingCollateralVault) external {
+    function registerVestingContract(IVestingCollateralVault _vestingCollateralVault) external {
         // Require collateral is listed
         require(vestingCollateralVaults[address(_vestingCollateralVault)].isListed, "Must be listed");
 
@@ -144,7 +144,7 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         vestingCollateralVaults[address(_vestingCollateralVault)].enabledAsCollateral = true;
     }
 
-    function withdraw(IVestingCollateralVault _vestingCollateralVault) external {
+    function withdrawVestingContract(IVestingCollateralVault _vestingCollateralVault) external {
         // Validate that the recipient of the vesting contract has been set by the owner
         address originalRecipient = _vestingCollateralVault.originalRecipient();
         require(_vestingCollateralVault.vestingContract().recipient() == address(_vestingCollateralVault) , "Please set recipient to vault contract");
