@@ -8,6 +8,8 @@ import "./Exponential.sol";
 import "./PriceOracle.sol";
 import "./ComptrollerInterface.sol";
 import "./ComptrollerStorage.sol";
+import { IVestingCollateralVault } from "./interfaces/IVestingCollateralVault.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title Compound's Comptroller Contract
@@ -29,11 +31,18 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         mapping(address => bool) accountMembership;
     }
 
+    struct VestingCollateralVault {
+        // Whether or not this vesting contract is listed
+        bool isListed;
+        bool enabledAsCollateral;
+    }
+
     /**
      * @notice Official mapping of cTokens -> Market metadata
      * @dev Used e.g. to determine if a market is supported
      */
     mapping(address => Market) public markets;
+    mapping(address => VestingCollateralVault) public vestingCollateralVaults;
 
     /**
      * @notice Emitted when an admin supports a market
@@ -118,10 +127,50 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
     }
 
     /**
-     * @notice Add assets to be included in account liquidity calculation
-     * @param cTokens The list of addresses of the cToken markets to be enabled
-     * @return Success indicator for whether each corresponding market was entered
+     * @notice Registers vesting contract. Validates the recipient is the vault contract and then sets enabled as collateral to true
      */
+    function register(IVestingCollateralVault _vestingCollateralVault) external {
+        // Require collateral is listed
+        require(vestingCollateralVaults[address(_vestingCollateralVault)].isListed, "Must be listed");
+
+        // Require collateral is not enabled yet
+        require(!vestingCollateralVaults[address(_vestingCollateralVault)].enabledAsCollateral, "Must be enabled");
+
+        // Validate that the recipient of the vesting contract has been set by the owner
+        require(_vestingCollateralVault.vestingContract().recipient() == address(_vestingCollateralVault) , "Please set recipient to vault contract");
+        require(_vestingCollateralVault.originalRecipient() == msg.sender, "Original recipient must be caller");
+
+        // Enable collateral for user in the Comptroller
+        vestingCollateralVaults[address(_vestingCollateralVault)].enabledAsCollateral = true;
+    }
+
+    function withdraw(IVestingCollateralVault _vestingCollateralVault) external {
+        // Validate that the recipient of the vesting contract has been set by the owner
+        address originalRecipient = _vestingCollateralVault.originalRecipient();
+        require(_vestingCollateralVault.vestingContract().recipient() == address(_vestingCollateralVault) , "Please set recipient to vault contract");
+        require(originalRecipient == msg.sender , "Original recipient must be caller");
+
+        // Validate all debt is repaid to withdraw contract
+        // TODO
+
+        // Set enabled collateral to false
+        vestingCollateralVaults[address(_vestingCollateralVault)].enabledAsCollateral = false;
+
+        // Transfer recipient back to original recipient
+        _vestingCollateralVault.vestingContract().setRecipient(originalRecipient);
+
+        // Transfer existing balance of tokens from vesting vault to original recipient in case tokens were claimed to user
+        IERC20 vestingToken = IERC20(_vestingCollateralVault.vestingToken());
+        uint256 balance = vestingToken.balanceOf(address(_vestingCollateralVault));
+        vestingToken.transferFrom(
+            address(_vestingCollateralVault),
+            originalRecipient,
+            balance
+        );
+    }
+    
+    // IMPORTANT: Only used to enter the lending token market so borrower can execute borrows
+    // The collateral vesting contract will be tracked separately. In this case, there will only be one USDC cToken allowed
     function enterMarkets(address[] memory cTokens) public override returns (uint[] memory) {
         uint len = cTokens.length;
 
@@ -938,6 +987,29 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
 
         markets[address(cToken)] = Market({isListed: true, collateralFactorMantissa: 0});
         emit MarketListed(cToken);
+
+        return uint(Error.NO_ERROR);
+    }
+
+    /**
+      * @notice Add the vesting contract collateral and list as collateral
+      * @dev Admin function to set isListed and add support for the market
+      * @param _vestingCollateralVault to list as collateral
+      * @return uint 0=success, otherwise a failure. (See enum Error for details)
+      */
+    function _supportCollateralVault(IVestingCollateralVault _vestingCollateralVault) external returns (uint) {
+        if (msg.sender != admin) {
+            return fail(Error.UNAUTHORIZED, FailureInfo.SUPPORT_MARKET_OWNER_CHECK);
+        }
+
+        require(vestingCollateralVaults[address(_vestingCollateralVault)].isListed, "Vault listed");
+
+        _vestingCollateralVault.getVestedAmount(); // Sanity check to make sure its really a vault
+
+        vestingCollateralVaults[address(_vestingCollateralVault)] = VestingCollateralVault({
+            isListed: true,
+            enabledAsCollateral: false
+        });
 
         return uint(Error.NO_ERROR);
     }
