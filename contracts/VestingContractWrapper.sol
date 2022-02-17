@@ -7,9 +7,9 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./ComptrollerInterface.sol";
 import "./SafeMath.sol";
 
-// Collateral instance for a single vesting contract that stores tokens while user is borrowing using protocol.
+// Wrapper for a single vesting contract that stores tokens while user is borrowing using protocol.
 // Each vesting vault must be added as enabled collateral in the Comptroller
-contract VestingCollateralVault {
+contract VestingCollateralWrapper {
     using SafeMath for uint256;
 
     /*** STATE ***/

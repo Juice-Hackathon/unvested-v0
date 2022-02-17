@@ -3,7 +3,7 @@ pragma solidity 0.6.10;
 
 import "./IVesting.sol";
 
-interface IVestingCollateralVault {
+interface IVestingCollateralWrapper {
     function getVestedAmount() external view returns(uint256);
     function getUnvestedAmount() external view returns(uint256);
     function vestingContract() external view returns(IVesting);
