@@ -9,6 +9,8 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     log: true,
     deterministicDeployment: false
   })
+
+  console.log('interest rate deployed');
 }
 
 module.exports.tags = ["WhitePaperInterestRateModel"]

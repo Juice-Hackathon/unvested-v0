@@ -9,6 +9,8 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     log: true,
     deterministicDeployment: false
   })
+
+  console.log('price oracle deployed');
 }
 
 module.exports.tags = ["SimplePriceOracle"]

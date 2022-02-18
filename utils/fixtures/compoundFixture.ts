@@ -42,6 +42,7 @@ export class CompoundFixture {
     await this.comptroller._setCloseFactor(ether(0.5));
     await this.comptroller._setLiquidationIncentive(ether(1.08));
 
+
     // deploy Interest rate model
     this.interestRateModel = await this._deployer.external.deployWhitePaperInterestRateModel(
       ether(1), // To change
@@ -70,7 +71,10 @@ export class CompoundFixture {
       decimals,
     );
 
-    // await newCToken["initialize(address,address,address,uint256,string,string,uint8)"](underlying,comptroller,interestRateModel,initialExchangeRateMantissa,name,symbol,decimals);
+    await newCToken["initialize(address,address,address,uint256,string,string,uint8)"](underlying,comptroller,interestRateModel,initialExchangeRateMantissa,name,symbol,decimals);
+    
+
+    console.log('newCToken initialized');
 
     await this.comptroller._supportMarket(newCToken.address);
     // Set starting price

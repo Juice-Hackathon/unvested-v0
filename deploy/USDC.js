@@ -1,20 +1,25 @@
-module.exports = async function ({ ethers: { getNamedSigner }, getNamedAccounts, getChainId, deployments }) {
-  const { deploy } = deployments
+const { executionAsyncResource } = require("async_hooks");
+const {ether} = require("../utils/common/unitsUtils.ts")
 
-  const { deployer } = await getNamedAccounts()
+module.exports = async function ({ ethers: { getNamedSigner }, getNamedAccounts, getChainId, deployments }) {
+  const { deploy, execute } = deployments
+
+  const { deployer } = await getNamedAccounts();
 
   await deploy("StandardTokenMock", {
     from: deployer,
     args: [
       deployer,
-      '1000000000000000000000000000',
-      6,
+      ether(1000000000),
       "USD Coin",
       "USDC",
+      6,
     ],
     log: true,
     deterministicDeployment: false
-  })
+  });
+
+  console.log('USDC deployed');
 }
 
 module.exports.tags = ["USDC"]
