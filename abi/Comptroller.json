@@ -284,6 +284,25 @@
   {
     "inputs": [
       {
+        "internalType": "contract IVestingCollateralWrapper",
+        "name": "_vestingContractWrapper",
+        "type": "address"
+      }
+    ],
+    "name": "_supportCollateralVault",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "contract CToken",
         "name": "cToken",
         "type": "address"
@@ -317,6 +336,25 @@
     "outputs": [
       {
         "internalType": "contract CToken",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "accountToVesting",
+    "outputs": [
+      {
+        "internalType": "contract IVestingCollateralWrapper",
         "name": "",
         "type": "address"
       }
@@ -855,6 +893,19 @@
   {
     "inputs": [
       {
+        "internalType": "contract IVestingCollateralWrapper",
+        "name": "_vestingContractWrapper",
+        "type": "address"
+      }
+    ],
+    "name": "registerVestingContract",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "cToken",
         "type": "address"
@@ -1049,6 +1100,43 @@
       }
     ],
     "name": "transferVerify",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "vestingCollateralVaults",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "isListed",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "enabledAsCollateral",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "contract IVestingCollateralWrapper",
+        "name": "_vestingContractWrapper",
+        "type": "address"
+      }
+    ],
+    "name": "withdrawVestingContract",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
