@@ -59,3 +59,21 @@ contract Vesting {
         EIP20Interface(vestingToken).transfer(recipient, amount);
     }
 }
+
+contract VestingUserTwo is Vesting {
+    constructor(
+        address vestingToken_,
+        address recipient_,
+        uint256 vestingAmount_,
+        uint256 vestingBegin_,
+        uint256 vestingCliff_,
+        uint256 vestingEnd_
+    ) public Vesting(
+        vestingToken_,
+        recipient_,
+        vestingAmount_,
+        vestingBegin_,
+        vestingCliff_,
+        vestingEnd_
+    ) {}
+}
