@@ -31,7 +31,7 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         mapping(address => bool) accountMembership;
     }
 
-    struct VestingCollateralWrapper {
+    struct VestingContractInfo {
         // Whether or not this vesting contract is listed
         bool isListed;
         bool enabledAsCollateral;
@@ -42,7 +42,7 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
      * @dev Used e.g. to determine if a market is supported
      */
     mapping(address => Market) public markets;
-    mapping(address => VestingCollateralWrapper) public vestingCollateralVaults;
+    mapping(address => VestingContractInfo) public vestingContractInfo;
 
     // Mapping of account to vesting contract
     mapping(address => IVestingCollateralWrapper) public accountToVesting;
@@ -134,17 +134,17 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
      */
     function registerVestingContract(IVestingCollateralWrapper _vestingContractWrapper) external {
         // Require collateral is listed
-        require(vestingCollateralVaults[address(_vestingContractWrapper)].isListed, "Must be listed");
+        require(vestingContractInfo[address(_vestingContractWrapper)].isListed, "Must be listed");
 
         // Require collateral is not enabled yet
-        require(!vestingCollateralVaults[address(_vestingContractWrapper)].enabledAsCollateral, "Must be enabled");
+        require(!vestingContractInfo[address(_vestingContractWrapper)].enabledAsCollateral, "Must be enabled");
 
         // Validate that the recipient of the vesting contract has been set by the owner
         require(_vestingContractWrapper.vestingContract().recipient() == address(_vestingContractWrapper) , "Please set recipient to vault contract");
         require(_vestingContractWrapper.originalRecipient() == msg.sender, "Original recipient must be caller");
 
         // Enable collateral for user in the Comptroller
-        vestingCollateralVaults[address(_vestingContractWrapper)].enabledAsCollateral = true;
+        vestingContractInfo[address(_vestingContractWrapper)].enabledAsCollateral = true;
         accountToVesting[msg.sender] = _vestingContractWrapper;
     }
 
@@ -158,7 +158,7 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         // TODO
 
         // Set enabled collateral to false and delete account to vault mapping
-        delete vestingCollateralVaults[address(_vestingContractWrapper)].enabledAsCollateral;
+        delete vestingContractInfo[address(_vestingContractWrapper)].enabledAsCollateral;
         delete accountToVesting[msg.sender];
 
         // Transfer recipient back to original recipient
@@ -1007,11 +1007,11 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
             return fail(Error.UNAUTHORIZED, FailureInfo.SUPPORT_MARKET_OWNER_CHECK);
         }
 
-        require(vestingCollateralVaults[address(_vestingContractWrapper)].isListed, "Vault listed");
+        require(vestingContractInfo[address(_vestingContractWrapper)].isListed, "Vault listed");
 
         _vestingContractWrapper.getVestedAmount(); // Sanity check to make sure its really a vault
 
-        vestingCollateralVaults[address(_vestingContractWrapper)] = VestingCollateralWrapper({
+        vestingContractInfo[address(_vestingContractWrapper)] = VestingContractInfo({
             isListed: true,
             enabledAsCollateral: false
         });
