@@ -2,9 +2,8 @@
 pragma solidity 0.6.10;
 
 import "./IVesting.sol";
-import "../ErrorReporter.sol";
 
-interface IVestingContractWrapper is ComptrollerErrorReporter {
+interface IVestingContractWrapper {
     function getVestedAmount() external view returns(uint256);
     function getUnvestedAmount() external view returns(uint256);
     function vestingContract() external view returns(IVesting);
