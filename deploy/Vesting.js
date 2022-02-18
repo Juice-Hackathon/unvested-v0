@@ -19,7 +19,7 @@ module.exports = async function ({ ethers: { getNamedSigner }, getNamedAccounts,
     deterministicDeployment: false
   });
 
-  const vesting = await deploy("Vesting", {
+  const vestingOne = await deploy("Vesting", {
     from: deployer,
     args: [
       yfi.address,
@@ -33,9 +33,32 @@ module.exports = async function ({ ethers: { getNamedSigner }, getNamedAccounts,
     deterministicDeployment: false
   });
 
-  // Transfer 1000 YFI to vesting contract
-  await execute('YearnMockToken',{from: deployer, log: true}, 'transfer', vesting.address, ether(1000));
+  const vestingTwo = await deploy("VestingUserTwo", {
+    from: deployer,
+    args: [
+      yfi.address,
+      deployer, // NOTE: set recipient to deployer which can be configured to a third party later on
+      ether(100), // 100 YFI vesting amount
+      1644937095, // Tuesday, February 15, 2022 10:58:15 PM GMT+08:00
+      1644937095, // No cliff TBD
+      1708009095 // Thursday, February 15, 2024 2:58:15 PM
+    ],
+    log: true,
+    deterministicDeployment: false
+  });
+
+  // Transfer 1000 YFI to vesting contract ONE
+  await execute('YearnMockToken',{from: deployer, log: true}, 'transfer', vestingOne.address, ether(1000));
+  // Transfer 100 YFI to vesting contract TWO
+  await execute('YearnMockToken',{from: deployer, log: true}, 'transfer', vestingTwo.address, ether(100));
+
+  // Set price for YFI in price oracle. NOTE: we are setting the direct price vs using setUnderlyingPrice as there is no cToken associated with YFI
+  // YFI is 18 decimals so price is 10^18 * 10^18 / 10^18
+  await execute('SimplePriceOracle',{from: deployer, log: true}, 'setDirectPrice', yfi.address, ether(10000));
+
+  // TODO
+  // Set suppport collateral on Comptroller
 }
 
 module.exports.tags = ["Vesting"]
-module.exports.dependencies = []
+module.exports.dependencies = ["SimplePriceOracle"]
