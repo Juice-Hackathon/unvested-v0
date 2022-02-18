@@ -712,6 +712,17 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         uint oErr;
         MathError mErr;
 
+        // TO-DO
+
+        // find if the account has a vestingContract deposited as collateral
+        // if so, call the getNPV() function to get the time adjusted value of collateral
+            // dependecy is to store the values of Phase1CutOff, Phase2CutOff, Phase1/2/3DiscountFactorMantissa, in the Comptroller in a special struct, and setting its value through Admin function
+        // calculate tokensToEther multiplier which has the collateralFactor (liquididation threshold)
+        // getNPV() * tokensToEther -> returns the collateral value
+        // set vars.sumCollateral += tokensToEther * getNPV()
+        // allow remaining function to run, output can be used as is
+
+
         // For each asset the account is in
         CToken[] memory assets = accountAssets[account];
         for (uint i = 0; i < assets.length; i++) {
@@ -731,6 +742,7 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
                 return (Error.PRICE_ERROR, 0, 0);
             }
             vars.oraclePrice = Exp({mantissa: vars.oraclePriceMantissa});
+
 
             // Pre-compute a conversion factor from tokens -> ether (normalized price value)
             (mErr, vars.tokensToEther) = mulExp3(vars.collateralFactor, vars.exchangeRate, vars.oraclePrice);
