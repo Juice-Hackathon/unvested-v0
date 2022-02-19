@@ -423,16 +423,16 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
      * @param mintAmount The amount of the underlying asset being minted
      * @param mintTokens The number of tokens being minted
      */
-    function mintVerify(address cToken, address minter, uint mintAmount, uint mintTokens) external override {
-        cToken;       // currently unused
-        minter;       // currently unused
-        mintAmount;   // currently unused
-        mintTokens;   // currently unused
+    // function mintVerify(address cToken, address minter, uint mintAmount, uint mintTokens) external override {
+    //     cToken;       // currently unused
+    //     minter;       // currently unused
+    //     mintAmount;   // currently unused
+    //     mintTokens;   // currently unused
 
-        if (false) {
-            maxAssets = maxAssets; // not pure
-        }
-    }
+    //     if (false) {
+    //         maxAssets = maxAssets; // not pure
+    //     }
+    // }
 
     /**
      * @notice Checks if the account should be allowed to redeem tokens in the given market
@@ -527,15 +527,15 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
      * @param borrower The address borrowing the underlying
      * @param borrowAmount The amount of the underlying asset requested to borrow
      */
-    function borrowVerify(address cToken, address borrower, uint borrowAmount) external override {
-        cToken;         // currently unused
-        borrower;       // currently unused
-        borrowAmount;   // currently unused
+    // function borrowVerify(address cToken, address borrower, uint borrowAmount) external override {
+    //     cToken;         // currently unused
+    //     borrower;       // currently unused
+    //     borrowAmount;   // currently unused
 
-        if (false) {
-            maxAssets = maxAssets; // not pure
-        }
-    }
+    //     if (false) {
+    //         maxAssets = maxAssets; // not pure
+    //     }
+    // }
 
     /**
      * @notice Checks if the account should be allowed to repay a borrow in the given market
@@ -570,22 +570,22 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
      * @param borrower The address of the borrower
      * @param repayAmount The amount of underlying being repaid
      */
-    function repayBorrowVerify(
-        address cToken,
-        address payer,
-        address borrower,
-        uint repayAmount,
-        uint borrowerIndex) external override {
-        cToken;        // currently unused
-        payer;         // currently unused
-        borrower;      // currently unused
-        repayAmount;   // currently unused
-        borrowerIndex; // currently unused
+    // function repayBorrowVerify(
+    //     address cToken,
+    //     address payer,
+    //     address borrower,
+    //     uint repayAmount,
+    //     uint borrowerIndex) external override {
+    //     cToken;        // currently unused
+    //     payer;         // currently unused
+    //     borrower;      // currently unused
+    //     repayAmount;   // currently unused
+    //     borrowerIndex; // currently unused
 
-        if (false) {
-            maxAssets = maxAssets; // not pure
-        }
-    }
+    //     if (false) {
+    //         maxAssets = maxAssets; // not pure
+    //     }
+    // }
 
     /**
      * @notice Checks if the liquidation should be allowed to occur
@@ -640,24 +640,24 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
      * @param borrower The address of the borrower
      * @param repayAmount The amount of underlying being repaid
      */
-    function liquidateBorrowVerify(
-        address cTokenBorrowed,
-        address cTokenCollateral,
-        address liquidator,
-        address borrower,
-        uint repayAmount,
-        uint seizeTokens) external override {
-        cTokenBorrowed;   // currently unused
-        cTokenCollateral; // currently unused
-        liquidator;       // currently unused
-        borrower;         // currently unused
-        repayAmount;      // currently unused
-        seizeTokens;      // currently unused
+    // function liquidateBorrowVerify(
+    //     address cTokenBorrowed,
+    //     address cTokenCollateral,
+    //     address liquidator,
+    //     address borrower,
+    //     uint repayAmount,
+    //     uint seizeTokens) external override {
+    //     cTokenBorrowed;   // currently unused
+    //     cTokenCollateral; // currently unused
+    //     liquidator;       // currently unused
+    //     borrower;         // currently unused
+    //     repayAmount;      // currently unused
+    //     seizeTokens;      // currently unused
 
-        if (false) {
-            maxAssets = maxAssets; // not pure
-        }
-    }
+    //     if (false) {
+    //         maxAssets = maxAssets; // not pure
+    //     }
+    // }
 
     /**
      * @notice Checks if the seizing of assets should be allowed to occur
@@ -698,22 +698,22 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
      * @param borrower The address of the borrower
      * @param seizeTokens The number of collateral tokens to seize
      */
-    function seizeVerify(
-        address cTokenCollateral,
-        address cTokenBorrowed,
-        address liquidator,
-        address borrower,
-        uint seizeTokens) external override {
-        cTokenCollateral; // currently unused
-        cTokenBorrowed;   // currently unused
-        liquidator;       // currently unused
-        borrower;         // currently unused
-        seizeTokens;      // currently unused
+    // function seizeVerify(
+    //     address cTokenCollateral,
+    //     address cTokenBorrowed,
+    //     address liquidator,
+    //     address borrower,
+    //     uint seizeTokens) external override {
+    //     cTokenCollateral; // currently unused
+    //     cTokenBorrowed;   // currently unused
+    //     liquidator;       // currently unused
+    //     borrower;         // currently unused
+    //     seizeTokens;      // currently unused
 
-        if (false) {
-            maxAssets = maxAssets; // not pure
-        }
-    }
+    //     if (false) {
+    //         maxAssets = maxAssets; // not pure
+    //     }
+    // }
 
     /**
      * @notice Checks if the account should be allowed to transfer tokens in the given market
@@ -743,16 +743,16 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
      * @param dst The account which receives the tokens
      * @param transferTokens The number of cTokens to transfer
      */
-    function transferVerify(address cToken, address src, address dst, uint transferTokens) external override {
-        cToken;         // currently unused
-        src;            // currently unused
-        dst;            // currently unused
-        transferTokens; // currently unused
+    // function transferVerify(address cToken, address src, address dst, uint transferTokens) external override {
+    //     cToken;         // currently unused
+    //     src;            // currently unused
+    //     dst;            // currently unused
+    //     transferTokens; // currently unused
 
-        if (false) {
-            maxAssets = maxAssets; // not pure
-        }
-    }
+    //     if (false) {
+    //         maxAssets = maxAssets; // not pure
+    //     }
+    // }
 
     /*** Liquidity/Liquidation Calculations ***/
 

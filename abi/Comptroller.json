@@ -457,29 +457,6 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "cToken",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "borrower",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "borrowAmount",
-        "type": "uint256"
-      }
-    ],
-    "name": "borrowVerify",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
         "name": "account",
         "type": "address"
       },
@@ -672,44 +649,6 @@
         "type": "address"
       },
       {
-        "internalType": "address",
-        "name": "cTokenCollateral",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "liquidator",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "borrower",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "repayAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "seizeTokens",
-        "type": "uint256"
-      }
-    ],
-    "name": "liquidateBorrowVerify",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "cTokenBorrowed",
-        "type": "address"
-      },
-      {
         "internalType": "uint256",
         "name": "repayAmount",
         "type": "uint256"
@@ -820,34 +759,6 @@
         "type": "uint256"
       }
     ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "cToken",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "minter",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "mintAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "mintTokens",
-        "type": "uint256"
-      }
-    ],
-    "name": "mintVerify",
-    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -998,39 +909,6 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "cToken",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "payer",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "borrower",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "repayAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "borrowerIndex",
-        "type": "uint256"
-      }
-    ],
-    "name": "repayBorrowVerify",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
         "name": "vestingContractWrapper",
         "type": "address"
       },
@@ -1063,39 +941,6 @@
         "type": "uint256"
       }
     ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "cTokenCollateral",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "cTokenBorrowed",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "liquidator",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "borrower",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "seizeTokens",
-        "type": "uint256"
-      }
-    ],
-    "name": "seizeVerify",
-    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -1164,34 +1009,6 @@
         "type": "uint256"
       }
     ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "cToken",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "src",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "dst",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "transferTokens",
-        "type": "uint256"
-      }
-    ],
-    "name": "transferVerify",
-    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
