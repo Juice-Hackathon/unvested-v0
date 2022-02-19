@@ -179,7 +179,7 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         IVesting _vestingContract = IVesting(_vestingContractAddress);
         // Validate that the recipient of the vesting contract has been set by the owner
         address originalRecipient = IVestingContractWrapper(vestingContractInfo[_vestingContract].vestingContractWrapper).originalRecipient();
-        require(_vestingContract.recipient() == address(_vestingContract) , "Please set recipient to vault contract");
+        require(_vestingContract.recipient() == vestingContractInfo[_vestingContract].vestingContractWrapper, "Please set recipient to vault contract");
         require(originalRecipient == msg.sender , "Original recipient must be caller");
 
         // Validate all debt is repaid to withdraw contract

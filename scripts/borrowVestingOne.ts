@@ -14,6 +14,8 @@ async function main() {
   const vestingTwo = await deployments.get("VestingUserTwo");
   const jUSDC = await deployments.get("CErc20");
 
+  // IMPORTANT: Ensure you run registerVestingContract.ts first
+
   // Enters markets
   await execute("Comptroller", {from: borrower1, log: true}, "enterMarkets", [jUSDC.address]);
 
@@ -83,6 +85,13 @@ async function main() {
     const calculatedLiquidity = accountLiquidityShortFall[1].toString();
     const calculatedShortfall = accountLiquidityShortFall[2].toString();
     console.log('Post Oracle Update Calculated Liquidity (Raw): ' + calculatedLiquidity + '  Shortfall: ' + calculatedShortfall);
+  }
+
+  // Test unregister. Should fail
+  try {
+    await execute("Comptroller", {from: borrower1, log: true}, "withdrawVestingContract", vestingOne.address);
+  } catch(e) {
+    console.log("EXPECTED TO FAIL WITH ERROR: ", e);
   }
 }
 
