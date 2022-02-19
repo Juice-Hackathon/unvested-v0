@@ -76,11 +76,10 @@ async function main() {
   console.log("Old recipient (Comptroller): ", comptroller.address, " New recipient: ", owner);
 
   // Try borrowing which will fail
-  try {
-    await execute("CErc20", {from: borrower1, log: true}, "borrow", '1000000000000');
-  } catch(e) {
-    console.log("EXPECTED TO FAIL WITH ERROR: ", e);
-  }
+  await execute("CErc20", {from: borrower1, log: true}, "borrow", '1000000000000');
+  // Get USDC balance post
+  const balanceBorrowed = await read("StandardTokenMock", {}, "balanceOf", borrower1);
+  console.log("Balance of USDC should be 0: ", balanceBorrowed.toString());
 }
 
 main()
