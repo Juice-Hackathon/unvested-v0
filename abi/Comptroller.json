@@ -284,6 +284,11 @@
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "_underlyingAddress",
+        "type": "address"
+      },
+      {
         "internalType": "uint256",
         "name": "_phaseOneCutoff",
         "type": "uint256"
@@ -306,6 +311,11 @@
       {
         "internalType": "uint256",
         "name": "_phaseThreeDiscountMantissa",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_collateralFactorMantissa",
         "type": "uint256"
       }
     ],
@@ -1201,6 +1211,11 @@
     "name": "vestingNPVConfig",
     "outputs": [
       {
+        "internalType": "address",
+        "name": "underlyingAddress",
+        "type": "address"
+      },
+      {
         "internalType": "uint256",
         "name": "phaseOneDiscountMantissa",
         "type": "uint256"
@@ -1223,6 +1238,11 @@
       {
         "internalType": "uint256",
         "name": "phaseTwoCutoff",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "collateralFactorMantissa",
         "type": "uint256"
       }
     ],

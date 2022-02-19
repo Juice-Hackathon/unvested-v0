@@ -22,11 +22,24 @@ async function main() {
 
   var res = await read("Comptroller", {},"vestingCalculateNPV", borrower1);
 
-  if (res[0] == BigNumber.from(0)) {
-    console.log('error calculating NPV');
+  if (!res[0].isZero()) {
+    console.log('error calculating NPV - ' + res[0].toString());
   } else {
     calculatedNPV = res[1].div(BigNumber.from("1000000000000000000")).toNumber();
     console.log('Calculated NPV: ' + calculatedNPV.toString());
+  }
+
+  // Getting accountLiquidity
+  var calculatedLiquidity, calculatedShortfall;
+
+  res = await read("Comptroller", {},"getAccountLiquidity", borrower1);
+
+  if (!res[0].isZero()) {
+    console.log('error calculating NPV - ' + res[0].toString());
+  } else {
+    calculatedLiquidity = res[1].div(BigNumber.from("1000000000000000000")).toNumber();
+    calculatedShortfall = res[2].div(BigNumber.from("1000000000000000000")).toNumber();
+    console.log('Calculated Liquidity: ' + calculatedLiquidity.toString() + '  Shortfall: ' + calculatedShortfall.toString());
   }
 
 }

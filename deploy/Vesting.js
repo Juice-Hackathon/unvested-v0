@@ -65,11 +65,13 @@ module.exports = async function ({ ethers: { getNamedSigner }, getNamedAccounts,
 
   // SetNPVConfig on Comptroller
   await execute('Comptroller', {from: deployer, log: true}, '_setVestingNPVConfig',
+                yfi.address,
                 15552000, // 180days in seconds: 180*24*3600  PhaseOneCutoff
                 31104000, // 360days in seconds: 360*24*3600  PhaseTwoCutOff
                 '900000000000000000', // 0.9 in mantissa,   PhaseOneDiscountMantissa
                 '700000000000000000', // 0.7 in mantissa,   PhaseTwoDiscountMantissa
-                '500000000000000000') // 0.5 in mantissa);  PhaseThreeDiscountMantissa             
+                '500000000000000000', // 0.5 in mantissa);  PhaseThreeDiscountMantissa
+                '500000000000000000') // 0.5 in mantissa CollateralFactor/liduidation threshold for vesting asset collateral               
 
 
   // Set suppport collateral on Comptroller

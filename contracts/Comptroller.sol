@@ -35,11 +35,13 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
     // Paramters for calculating NPV of Collateral for single Market
     // set with admin function _setVestingNPVConfig
     struct VestingNPVConfig {
+        address underlyingAddress;
         uint phaseOneDiscountMantissa;
         uint phaseTwoDiscountMantissa;
         uint phaseThreeDiscountMantissa;
         uint256 phaseOneCutoff;
         uint256 phaseTwoCutoff;
+        uint collateralFactorMantissa;
     }
 
     VestingNPVConfig public vestingNPVConfig; //instantiating VestingNPVConfig
@@ -675,7 +677,7 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
      *          accountLiquidity)
      */
 
-    function vestingCalculateNPV(address owner) external override view  returns (uint, uint256) {
+    function vestingCalculateNPV(address owner) external override view returns (uint, uint256) {
         // Find if owner has any listed contracts enabled as Collateral
         
         // Confirm there exists a mapping from owner to a vesting contract, otherwise owner did not register any contract
@@ -718,6 +720,7 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         uint borrowBalance;
         uint exchangeRateMantissa;
         uint oraclePriceMantissa;
+        uint collateralNPV;
         Exp collateralFactor;
         Exp exchangeRate;
         Exp oraclePrice;
@@ -768,18 +771,38 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         uint oErr;
         MathError mErr;
 
-        // TO-DO
+        // Collateral vesting contract value calculation
+        // collareral = NPV * collaralFactor * underlyingPrice (in Ether)
 
-        // find if the account has a vestingContract deposited as collateral
-        // if so, call the getNPV() function to get the time adjusted value of collateral
-            // dependecy is to store the values of Phase1CutOff, Phase2CutOff, Phase1/2/3DiscountFactorMantissa, in the Comptroller in a special struct, and setting its value through Admin function
-        // calculate tokensToEther multiplier which has the collateralFactor (liquididation threshold)
-        // getNPV() * tokensToEther -> returns the collateral value
-        // set vars.sumCollateral += tokensToEther * getNPV()
-        // allow remaining function to run, output can be used as is
+        // calculate NPV of collateral (checks if account has vestingContract)
+        (oErr, vars.collateralNPV)= this.vestingCalculateNPV(account);
+        if (oErr != 0) {
+            return (Error.MATH_ERROR, 0, 0);
+        }    
+
+        // get underlying price
+        vars.oraclePriceMantissa = oracle.getPrice(vestingNPVConfig.underlyingAddress);
+        if (vars.oraclePriceMantissa == 0) {
+            return (Error.PRICE_ERROR, 0, 0);
+        }
+        vars.oraclePrice = Exp({mantissa: vars.oraclePriceMantissa});
+
+        vars.collateralFactor = Exp({mantissa: vestingNPVConfig.collateralFactorMantissa});
+
+        // calculate tokensToEther = collareralFactor * oraclePrice
+        (mErr, vars.tokensToEther) = mulExp(vars.collateralFactor, vars.oraclePrice);
+        if (mErr != MathError.NO_ERROR) {
+            return (Error.MATH_ERROR, 0, 0);
+        }
+
+        // sumCollateral += tokensToEther * NPV Value
+        (mErr, vars.sumCollateral) = mulScalarTruncateAddUInt(vars.tokensToEther, vars.collateralNPV, vars.sumCollateral);
+        if (mErr != MathError.NO_ERROR) {
+            return (Error.MATH_ERROR, 0, 0);
+        }
 
 
-        // For each asset the account is in
+        // For each asset the account is in  -> will only apply to stablecoin side (i = 1)
         CToken[] memory assets = accountAssets[account];
         for (uint i = 0; i < assets.length; i++) {
             CToken asset = assets[i];
@@ -1120,22 +1143,29 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
       * @return uint 0=success, otherwise a failure. (See enum Error for details)
       */
     function _setVestingNPVConfig(
+        address _underlyingAddress,
         uint256 _phaseOneCutoff,
         uint256 _phaseTwoCutoff,
         uint _phaseOneDiscountMantissa,
         uint _phaseTwoDiscountMantissa,
-        uint _phaseThreeDiscountMantissa) external returns (uint) {
+        uint _phaseThreeDiscountMantissa,
+        uint _collateralFactorMantissa) external returns (uint) {
         if (msg.sender != admin) {
             return fail(Error.UNAUTHORIZED, FailureInfo.SUPPORT_MARKET_OWNER_CHECK);
         }
 
         require(_phaseOneCutoff <= _phaseTwoCutoff, "phaseOneCutoff must be less than phaseTwo");
 
+        require(_collateralFactorMantissa <= collateralFactorMaxMantissa, "Collateral factor must be less than Max");
+        require(_collateralFactorMantissa >= closeFactorMinMantissa, "Collateral factor must be greater than min");
+
+        vestingNPVConfig.underlyingAddress = _underlyingAddress;
         vestingNPVConfig.phaseOneCutoff = _phaseOneCutoff;
         vestingNPVConfig.phaseTwoCutoff = _phaseTwoCutoff;
         vestingNPVConfig.phaseOneDiscountMantissa = _phaseOneDiscountMantissa;
         vestingNPVConfig.phaseTwoDiscountMantissa = _phaseTwoDiscountMantissa;
         vestingNPVConfig.phaseThreeDiscountMantissa = _phaseThreeDiscountMantissa;
+        vestingNPVConfig.collateralFactorMantissa = _collateralFactorMantissa;
 
         return uint(Error.NO_ERROR);
     }
