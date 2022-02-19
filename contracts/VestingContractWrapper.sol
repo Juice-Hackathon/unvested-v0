@@ -27,6 +27,7 @@ contract VestingContractWrapper is IVestingContractWrapper, ComptrollerErrorRepo
         uint256 timeRemaining;
         uint256 vestedAmount;
         uint256 unvestedAmount;
+        uint256 liquidAmount;
     }
 
     struct VestingNPVCalculations {
@@ -68,7 +69,11 @@ contract VestingContractWrapper is IVestingContractWrapper, ComptrollerErrorRepo
         uint256 balanceInVesting = IERC20(vestingToken).balanceOf(address(_vestingContract));
 
         // Get vested but unclaimed amount
-        uint256 vestedAmount = getVestedAmount();
+        uint256 vestedAmount = getVestedUnclaimedAmount();
+        
+        // Get claimed and liquid. Note: there are situations where users can send liquid tokens to this vesting contract
+        // wrapper which will count towards NPV calculation
+        uint256 liquidAmount = getLiquidAmount();
 
         // Get unvested amount
         uint256 unvestedAmount = getUnvestedAmount();
@@ -76,7 +81,7 @@ contract VestingContractWrapper is IVestingContractWrapper, ComptrollerErrorRepo
         // Balance of underlying must be greater than remaining as a validation. This assumes the vesting contract is immutable
         // therefore there is no possibility that a third party can remove funds and drain the balances in the vesting contract
         // after deployment
-        require(vestedAmount.add(unvestedAmount) < balanceInVesting);
+        require(liquidAmount.add(vestedAmount).add(unvestedAmount) < balanceInVesting);
 
         // Approve max underlying tokens so Comptroller has ability to move funds from this contract
         IERC20(vestingToken).approve(address(comptroller), uint256(-1));
@@ -90,7 +95,7 @@ contract VestingContractWrapper is IVestingContractWrapper, ComptrollerErrorRepo
 
     /*** VIEW FUNCTIONS ***/
 
-    function getVestedAmount() public view override returns (uint256) {
+    function getVestedUnclaimedAmount() public view override returns (uint256) {
         // If not past vesting cliff then return 0 as vested
         if (block.timestamp < vestingCliff) return 0;
 
@@ -99,6 +104,10 @@ contract VestingContractWrapper is IVestingContractWrapper, ComptrollerErrorRepo
         } else {
             return vestingAmount.mul(block.timestamp.sub(vestingContract.lastUpdate())).div(vestingEnd.sub(vestingBegin));
         }
+    }
+
+    function getLiquidAmount() public view override returns (uint256) {
+        return IERC20(vestingToken).balanceOf(address(this));
     }
 
     function getUnvestedAmount() public view override returns (uint256) {
@@ -136,12 +145,13 @@ contract VestingContractWrapper is IVestingContractWrapper, ComptrollerErrorRepo
             phaseTwoDiscount: Exp({mantissa: _phaseTwoDiscountMantissa}),
             phaseThreeDiscount: Exp({mantissa: _phaseThreeDiscountMantissa}),
             timeRemaining: vestingEnd.sub(block.timestamp),
-            vestedAmount: getVestedAmount(),
-            unvestedAmount: getUnvestedAmount()
+            vestedAmount: getVestedUnclaimedAmount(),
+            unvestedAmount: getUnvestedAmount(),
+            liquidAmount: getLiquidAmount()
         });
 
         VestingNPVCalculations memory vestingNPVCalculations = VestingNPVCalculations({
-            presentValue: vestingNPVInfo.vestedAmount, // Start present value at vested amount
+            presentValue: vestingNPVInfo.vestedAmount.add(vestingNPVInfo.liquidAmount), // Start present value at vested amount plus liquid amount
             fullPhaseOneShare: _phaseOneCutoff.preciseDiv(vestingNPVInfo.timeRemaining),
             fullPhaseTwoShare: _phaseTwoCutoff.sub(_phaseOneCutoff).preciseDiv(vestingNPVInfo.timeRemaining), // (Phase_2-Phase_1/time_remaining)
             partialPhaseTwoShare: vestingNPVInfo.timeRemaining.sub(_phaseOneCutoff).preciseDiv(vestingNPVInfo.timeRemaining),

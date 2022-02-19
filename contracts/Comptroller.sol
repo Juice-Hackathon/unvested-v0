@@ -201,9 +201,9 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
 
         // Transfer existing balance of tokens FROM vesting vault TO original recipient in case tokens were claimed to user
         IERC20 vestingToken = IERC20(_vestingContract.vestingToken());
-        uint256 balance = vestingToken.balanceOf(address(_vestingContract));
+        uint256 balance = vestingToken.balanceOf(vestingContractInfo[_vestingContract].vestingContractWrapper);
         vestingToken.transferFrom(
-            address(_vestingContract),
+            vestingContractInfo[_vestingContract].vestingContractWrapper,
             originalRecipient,
             balance
         );
