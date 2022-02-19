@@ -13,20 +13,23 @@ async function main() {
   const vestingOne = await deployments.get("Vesting");
   const vestingTwo = await deployments.get("VestingUserTwo");
 
+  var res;
+
   // Transfer Ownership of Vesting Contract
   await execute("Vesting", {from: borrower1, log: true}, "setRecipient",comptroller.address);
   await execute("Comptroller", {from: borrower1, log: true}, "registerVestingContract", vestingOne.address);
 
+
   // Calculating NPV
   var calculatedNPV;
 
-  var res = await read("Comptroller", {},"vestingCalculateNPV", borrower1);
+  res = await read("Comptroller", {},"vestingCalculateNPV", borrower1);
 
   if (!res[0].isZero()) {
     console.log('error calculating NPV - ' + res[0].toString());
   } else {
-    calculatedNPV = res[1].div(BigNumber.from("1000000000000000000")).toNumber();
-    console.log('Calculated NPV: ' + calculatedNPV.toString());
+    calculatedNPV = res[1].div(BigNumber.from("1000000000000000000")).toString();
+    console.log('Calculated NPV: ' + calculatedNPV);
   }
 
   // Getting accountLiquidity
@@ -37,9 +40,9 @@ async function main() {
   if (!res[0].isZero()) {
     console.log('error calculating NPV - ' + res[0].toString());
   } else {
-    calculatedLiquidity = res[1].div(BigNumber.from("1000000000000000000")).toNumber();
-    calculatedShortfall = res[2].div(BigNumber.from("1000000000000000000")).toNumber();
-    console.log('Calculated Liquidity: ' + calculatedLiquidity.toString() + '  Shortfall: ' + calculatedShortfall.toString());
+    calculatedLiquidity = res[1].div(BigNumber.from("1000000000000000000")).toString();
+    calculatedShortfall = res[2].div(BigNumber.from("1000000000000000000")).toString();
+    console.log('Calculated Liquidity: ' + calculatedLiquidity + '  Shortfall: ' + calculatedShortfall);
   }
 
 }

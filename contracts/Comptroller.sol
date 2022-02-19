@@ -677,7 +677,7 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
      *          accountLiquidity)
      */
 
-    function vestingCalculateNPV(address owner) external override view returns (uint, uint256) {
+    function vestingCalculateNPV(address owner) public override view returns (uint, uint256) {
         // Find if owner has any listed contracts enabled as Collateral
         
         // Confirm there exists a mapping from owner to a vesting contract, otherwise owner did not register any contract
@@ -694,7 +694,7 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         uint err;
         uint256 calculatedNPV;    
 
-        (err, calculatedNPV) = _vestingWrapper.getNPV( vestingNPVConfig.phaseOneCutoff,
+        (err, calculatedNPV) = _vestingWrapper.getNPV(vestingNPVConfig.phaseOneCutoff,
             vestingNPVConfig.phaseTwoCutoff,
             vestingNPVConfig.phaseOneDiscountMantissa,
             vestingNPVConfig.phaseTwoDiscountMantissa,
@@ -775,7 +775,7 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         // collareral = NPV * collaralFactor * underlyingPrice (in Ether)
 
         // calculate NPV of collateral (checks if account has vestingContract)
-        (oErr, vars.collateralNPV)= this.vestingCalculateNPV(account);
+        (oErr, vars.collateralNPV)= vestingCalculateNPV(account);
         if (oErr != 0) {
             return (Error.MATH_ERROR, 0, 0);
         }    
@@ -786,6 +786,7 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
             return (Error.PRICE_ERROR, 0, 0);
         }
         vars.oraclePrice = Exp({mantissa: vars.oraclePriceMantissa});
+
 
         vars.collateralFactor = Exp({mantissa: vestingNPVConfig.collateralFactorMantissa});
 

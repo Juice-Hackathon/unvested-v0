@@ -9,6 +9,7 @@ import "./ComptrollerInterface.sol";
 import "./SafeMath.sol";
 import "./Exponential.sol";
 import "./ErrorReporter.sol";
+import "hardhat/console.sol";
 
 // Wrapper for a single vesting contract that stores tokens while user is borrowing using protocol.
 // Each vesting vault must be added as enabled collateral in the Comptroller
@@ -25,6 +26,10 @@ contract VestingContractWrapper is IVestingContractWrapper, ComptrollerErrorRepo
         uint256 vestedAmount;
         uint256 unvestedAmount;
         uint256 presentValue;
+        uint256 fullPhaseOneShare;
+        uint256 fullPhaseTwoShare;
+        uint256 partialPhaseTwoShare;
+        uint256 partialPhaseThreeShare;
     }
 
 
@@ -128,8 +133,22 @@ contract VestingContractWrapper is IVestingContractWrapper, ComptrollerErrorRepo
             timeRemaining: vestingEnd.sub(block.timestamp),
             vestedAmount: getVestedAmount(),
             unvestedAmount: getUnvestedAmount(),
-            presentValue: getVestedAmount() // Start present value at vested amount
+            presentValue: getVestedAmount(), // Start present value at vested amount
+            fullPhaseOneShare: _phaseOneCutoff.mul(1e18).div(vestingEnd.sub(block.timestamp)),
+            fullPhaseTwoShare: _phaseTwoCutoff.sub(_phaseOneCutoff).mul(1e18).div(vestingEnd.sub(block.timestamp)), // (Phase_2-Phase_1/time_remaining)
+            partialPhaseTwoShare: vestingEnd.sub(block.timestamp).sub(_phaseOneCutoff).mul(1e18).div(vestingEnd.sub(block.timestamp)),
+            partialPhaseThreeShare: vestingEnd.sub(block.timestamp).sub(_phaseTwoCutoff).mul(1e18).div(vestingEnd.sub(block.timestamp))
         });
+
+        console.log("Vested amount %s", vestingNPVInfo.vestedAmount);
+        console.log("Phase one discount %s", vestingNPVInfo.phaseOneDiscount.mantissa);
+        console.log("Phase two discount %s", vestingNPVInfo.phaseTwoDiscount.mantissa);
+        console.log("Phase three discount %s", vestingNPVInfo.phaseThreeDiscount.mantissa);
+        console.log("Unvested amount %s", vestingNPVInfo.unvestedAmount);
+
+        console.log("Time remaiing %s", vestingNPVInfo.timeRemaining);
+        console.log("Vesting end %s", vestingEnd);
+        console.log("Block timestamp %s", block.timestamp);
 
         MathError mErr;
 
@@ -146,36 +165,42 @@ contract VestingContractWrapper is IVestingContractWrapper, ComptrollerErrorRepo
                 vestingNPVInfo.unvestedAmount,
                 vestingNPVInfo.presentValue
             );
+            
             if (mErr != MathError.NO_ERROR) {
                 return (uint(Error.MATH_ERROR), 0);
             }
 
         } else if (vestingNPVInfo.timeRemaining <= _phaseTwoCutoff) {
+            console.log('presentValue1 %s',vestingNPVInfo.presentValue);
+
+
             // presentValue += unvestedAmount * (PhaseOneCutoff / timeRemaining) * phaseOneDiscount
             (mErr, vestingNPVInfo.presentValue) = mulScalarTruncateAddUInt(
                 vestingNPVInfo.phaseOneDiscount,
-                vestingNPVInfo.unvestedAmount.mul(_phaseOneCutoff.div(vestingNPVInfo.timeRemaining)),
+                vestingNPVInfo.unvestedAmount.mul(vestingNPVInfo.fullPhaseOneShare).div(1e18),
                 vestingNPVInfo.presentValue
             );
             if (mErr != MathError.NO_ERROR) {
                 return (uint(Error.MATH_ERROR), 0);
             }
+            console.log('presentValue2 %s',vestingNPVInfo.presentValue);
 
             // presentValue += (unvestedAmount * (timeRemaining - PhaseOneCutoff) / timeRemaining)) * phaseTwoDiscount
             (mErr, vestingNPVInfo.presentValue) = mulScalarTruncateAddUInt(
                 vestingNPVInfo.phaseTwoDiscount,
-                vestingNPVInfo.unvestedAmount.mul(vestingNPVInfo.timeRemaining.sub(_phaseOneCutoff).div(vestingNPVInfo.timeRemaining)),
+                vestingNPVInfo.unvestedAmount.mul(vestingNPVInfo.partialPhaseTwoShare).div(1e18),
                 vestingNPVInfo.presentValue
             );
             if (mErr != MathError.NO_ERROR) {
                 return (uint(Error.MATH_ERROR), 0);
             }
+            console.log('presentValue3 %s',vestingNPVInfo.presentValue);
 
         } else {
             // presentValue += unvestedAmount * (PhaseOneCutoff / timeRemaining) * phaseOneDiscount
             (mErr, vestingNPVInfo.presentValue) = mulScalarTruncateAddUInt(
                 vestingNPVInfo.phaseOneDiscount,
-                vestingNPVInfo.unvestedAmount.mul(_phaseOneCutoff.div(vestingNPVInfo.timeRemaining)),
+                vestingNPVInfo.unvestedAmount.mul(vestingNPVInfo.fullPhaseOneShare).div(1e18),
                 vestingNPVInfo.presentValue
             );
             if (mErr != MathError.NO_ERROR) {
@@ -185,7 +210,7 @@ contract VestingContractWrapper is IVestingContractWrapper, ComptrollerErrorRepo
             // presentValue += (unvestedAmount * (PhaseTwoCutoff - PhaseOneCutoff) / timeRemaining)  * phaseTwoDiscount
             (mErr, vestingNPVInfo.presentValue) = mulScalarTruncateAddUInt(
                 vestingNPVInfo.phaseTwoDiscount,
-                vestingNPVInfo.unvestedAmount.mul(_phaseTwoCutoff.sub(_phaseOneCutoff).div(vestingNPVInfo.timeRemaining)),
+                vestingNPVInfo.unvestedAmount.mul(vestingNPVInfo.fullPhaseTwoShare).div(1e18),
                 vestingNPVInfo.presentValue
             );
             if (mErr != MathError.NO_ERROR) {
@@ -195,7 +220,7 @@ contract VestingContractWrapper is IVestingContractWrapper, ComptrollerErrorRepo
             // presentValue += (unvestedAmount * (timeRemaining - PhaseTwoCutoff) / timeRemaining)) * phaseThreeDiscount
             (mErr, vestingNPVInfo.presentValue) = mulScalarTruncateAddUInt(
                 vestingNPVInfo.phaseThreeDiscount,
-                vestingNPVInfo.unvestedAmount.mul(vestingNPVInfo.timeRemaining.sub(_phaseTwoCutoff).div(vestingNPVInfo.timeRemaining)),
+                vestingNPVInfo.unvestedAmount.mul(vestingNPVInfo.partialPhaseThreeShare).div(1e18),
                 vestingNPVInfo.presentValue
             );
             if (mErr != MathError.NO_ERROR) {
@@ -204,6 +229,6 @@ contract VestingContractWrapper is IVestingContractWrapper, ComptrollerErrorRepo
 
         }
 
-        return (uint(Error.NO_ERROR), vestingNPVInfo.presentValue);
+        return (uint(Error.NO_ERROR), vestingNPVInfo.presentValue.mul(1e18));
     }
 }
