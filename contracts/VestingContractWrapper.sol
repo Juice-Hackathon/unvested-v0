@@ -3,6 +3,7 @@
 pragma solidity 0.6.10;
 
 import { IVesting } from "./interfaces/IVesting.sol";
+import { PreciseUnitMath } from "./PreciseUnitMath.sol";
 import { IVestingContractWrapper } from "./interfaces/IVestingContractWrapper.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./ComptrollerInterface.sol";
@@ -15,6 +16,7 @@ import "hardhat/console.sol";
 // Each vesting vault must be added as enabled collateral in the Comptroller
 contract VestingContractWrapper is IVestingContractWrapper, ComptrollerErrorReporter, Exponential {
     using SafeMath for uint256;
+    using PreciseUnitMath for uint256;
 
     /*** STRUCT ***/
 
@@ -25,6 +27,9 @@ contract VestingContractWrapper is IVestingContractWrapper, ComptrollerErrorRepo
         uint256 timeRemaining;
         uint256 vestedAmount;
         uint256 unvestedAmount;
+    }
+
+    struct VestingNPVCalculations {
         uint256 presentValue;
         uint256 fullPhaseOneShare;
         uint256 fullPhaseTwoShare;
@@ -132,12 +137,15 @@ contract VestingContractWrapper is IVestingContractWrapper, ComptrollerErrorRepo
             phaseThreeDiscount: Exp({mantissa: _phaseThreeDiscountMantissa}),
             timeRemaining: vestingEnd.sub(block.timestamp),
             vestedAmount: getVestedAmount(),
-            unvestedAmount: getUnvestedAmount(),
-            presentValue: getVestedAmount(), // Start present value at vested amount
-            fullPhaseOneShare: _phaseOneCutoff.mul(1e18).div(vestingEnd.sub(block.timestamp)),
-            fullPhaseTwoShare: _phaseTwoCutoff.sub(_phaseOneCutoff).mul(1e18).div(vestingEnd.sub(block.timestamp)), // (Phase_2-Phase_1/time_remaining)
-            partialPhaseTwoShare: vestingEnd.sub(block.timestamp).sub(_phaseOneCutoff).mul(1e18).div(vestingEnd.sub(block.timestamp)),
-            partialPhaseThreeShare: vestingEnd.sub(block.timestamp).sub(_phaseTwoCutoff).mul(1e18).div(vestingEnd.sub(block.timestamp))
+            unvestedAmount: getUnvestedAmount()
+        });
+
+        VestingNPVCalculations memory vestingNPVCalculations = VestingNPVCalculations({
+            presentValue: vestingNPVInfo.vestedAmount, // Start present value at vested amount
+            fullPhaseOneShare: _phaseOneCutoff.preciseDiv(vestingNPVInfo.timeRemaining),
+            fullPhaseTwoShare: _phaseTwoCutoff.sub(_phaseOneCutoff).preciseDiv(vestingNPVInfo.timeRemaining), // (Phase_2-Phase_1/time_remaining)
+            partialPhaseTwoShare: vestingNPVInfo.timeRemaining.sub(_phaseOneCutoff).preciseDiv(vestingNPVInfo.timeRemaining),
+            partialPhaseThreeShare: vestingNPVInfo.timeRemaining.sub(_phaseTwoCutoff).preciseDiv(vestingNPVInfo.timeRemaining)
         });
 
         console.log("Vested amount %s", vestingNPVInfo.vestedAmount);
@@ -160,10 +168,10 @@ contract VestingContractWrapper is IVestingContractWrapper, ComptrollerErrorRepo
 
         if (vestingNPVInfo.timeRemaining <= _phaseOneCutoff) {
             // presentValue += unvestedAmount * phaseOneDiscount
-            (mErr, vestingNPVInfo.presentValue) = mulScalarTruncateAddUInt(
+            (mErr, vestingNPVCalculations.presentValue) = mulScalarTruncateAddUInt(
                 vestingNPVInfo.phaseOneDiscount,
                 vestingNPVInfo.unvestedAmount,
-                vestingNPVInfo.presentValue
+                vestingNPVCalculations.presentValue
             );
             
             if (mErr != MathError.NO_ERROR) {
@@ -171,64 +179,60 @@ contract VestingContractWrapper is IVestingContractWrapper, ComptrollerErrorRepo
             }
 
         } else if (vestingNPVInfo.timeRemaining <= _phaseTwoCutoff) {
-            console.log('presentValue1 %s',vestingNPVInfo.presentValue);
 
 
             // presentValue += unvestedAmount * (PhaseOneCutoff / timeRemaining) * phaseOneDiscount
-            (mErr, vestingNPVInfo.presentValue) = mulScalarTruncateAddUInt(
+            (mErr, vestingNPVCalculations.presentValue) = mulScalarTruncateAddUInt(
                 vestingNPVInfo.phaseOneDiscount,
-                vestingNPVInfo.unvestedAmount.mul(vestingNPVInfo.fullPhaseOneShare).div(1e18),
-                vestingNPVInfo.presentValue
+                vestingNPVInfo.unvestedAmount.preciseMul(vestingNPVCalculations.fullPhaseOneShare),
+                vestingNPVCalculations.presentValue
             );
             if (mErr != MathError.NO_ERROR) {
                 return (uint(Error.MATH_ERROR), 0);
             }
-            console.log('presentValue2 %s',vestingNPVInfo.presentValue);
 
             // presentValue += (unvestedAmount * (timeRemaining - PhaseOneCutoff) / timeRemaining)) * phaseTwoDiscount
-            (mErr, vestingNPVInfo.presentValue) = mulScalarTruncateAddUInt(
+            (mErr, vestingNPVCalculations.presentValue) = mulScalarTruncateAddUInt(
                 vestingNPVInfo.phaseTwoDiscount,
-                vestingNPVInfo.unvestedAmount.mul(vestingNPVInfo.partialPhaseTwoShare).div(1e18),
-                vestingNPVInfo.presentValue
+                vestingNPVInfo.unvestedAmount.preciseMul(vestingNPVCalculations.partialPhaseTwoShare),
+                vestingNPVCalculations.presentValue
             );
             if (mErr != MathError.NO_ERROR) {
                 return (uint(Error.MATH_ERROR), 0);
             }
-            console.log('presentValue3 %s',vestingNPVInfo.presentValue);
 
         } else {
             // presentValue += unvestedAmount * (PhaseOneCutoff / timeRemaining) * phaseOneDiscount
-            (mErr, vestingNPVInfo.presentValue) = mulScalarTruncateAddUInt(
+            (mErr, vestingNPVCalculations.presentValue) = mulScalarTruncateAddUInt(
                 vestingNPVInfo.phaseOneDiscount,
-                vestingNPVInfo.unvestedAmount.mul(vestingNPVInfo.fullPhaseOneShare).div(1e18),
-                vestingNPVInfo.presentValue
+                vestingNPVInfo.unvestedAmount.preciseMul(vestingNPVCalculations.fullPhaseOneShare),
+                vestingNPVCalculations.presentValue
             );
             if (mErr != MathError.NO_ERROR) {
                 return (uint(Error.MATH_ERROR), 0);
             }
 
             // presentValue += (unvestedAmount * (PhaseTwoCutoff - PhaseOneCutoff) / timeRemaining)  * phaseTwoDiscount
-            (mErr, vestingNPVInfo.presentValue) = mulScalarTruncateAddUInt(
+            (mErr, vestingNPVCalculations.presentValue) = mulScalarTruncateAddUInt(
                 vestingNPVInfo.phaseTwoDiscount,
-                vestingNPVInfo.unvestedAmount.mul(vestingNPVInfo.fullPhaseTwoShare).div(1e18),
-                vestingNPVInfo.presentValue
+                vestingNPVInfo.unvestedAmount.preciseMul(vestingNPVCalculations.fullPhaseTwoShare),
+                vestingNPVCalculations.presentValue
             );
             if (mErr != MathError.NO_ERROR) {
                 return (uint(Error.MATH_ERROR), 0);
             }
 
             // presentValue += (unvestedAmount * (timeRemaining - PhaseTwoCutoff) / timeRemaining)) * phaseThreeDiscount
-            (mErr, vestingNPVInfo.presentValue) = mulScalarTruncateAddUInt(
+            (mErr, vestingNPVCalculations.presentValue) = mulScalarTruncateAddUInt(
                 vestingNPVInfo.phaseThreeDiscount,
-                vestingNPVInfo.unvestedAmount.mul(vestingNPVInfo.partialPhaseThreeShare).div(1e18),
-                vestingNPVInfo.presentValue
+                vestingNPVInfo.unvestedAmount.preciseMul(vestingNPVCalculations.partialPhaseThreeShare),
+                vestingNPVCalculations.presentValue
             );
             if (mErr != MathError.NO_ERROR) {
                 return (uint(Error.MATH_ERROR), 0);
             }
-
         }
 
-        return (uint(Error.NO_ERROR), vestingNPVInfo.presentValue.mul(1e18));
+        return (uint(Error.NO_ERROR), vestingNPVCalculations.presentValue);
     }
 }

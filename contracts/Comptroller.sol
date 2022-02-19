@@ -183,7 +183,14 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         require(originalRecipient == msg.sender , "Original recipient must be caller");
 
         // Validate all debt is repaid to withdraw contract
-        // TODO
+        CToken[] memory assets = accountAssets[msg.sender];
+        for (uint i = 0; i < assets.length; i++) {
+            CToken asset = assets[i];
+
+            // Read the balances and exchange rate from the cToken
+            ( , , uint256 borrowBalance, ) = asset.getAccountSnapshot(msg.sender);
+            require(borrowBalance == 0, "Must pay off debt");
+        }
 
         // Set enabled collateral to false and delete account to vault mapping
         delete vestingContractInfo[_vestingContract].enabledAsCollateral;

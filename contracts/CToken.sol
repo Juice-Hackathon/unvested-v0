@@ -798,7 +798,6 @@ abstract contract CToken is CTokenInterface, Exponential, TokenErrorReporter {
         /* We call the defense hook */
         // unused function
         // comptroller.borrowVerify(address(this), borrower, borrowAmount);
-
         return uint(Error.NO_ERROR);
     }
 

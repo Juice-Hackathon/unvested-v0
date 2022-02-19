@@ -28,8 +28,8 @@ async function main() {
   if (!res[0].isZero()) {
     console.log('error calculating NPV - ' + res[0].toString());
   } else {
-    calculatedNPV = res[1].div(BigNumber.from("1000000000000000000")).toString();
-    console.log('Calculated NPV: ' + calculatedNPV);
+    calculatedNPV = res[1].toString();
+    console.log('Calculated NPV (Raw): ' + calculatedNPV);
   }
 
   // Getting accountLiquidity
@@ -40,9 +40,9 @@ async function main() {
   if (!res[0].isZero()) {
     console.log('error calculating NPV - ' + res[0].toString());
   } else {
-    calculatedLiquidity = res[1].div(BigNumber.from("1000000000000000000")).toString();
-    calculatedShortfall = res[2].div(BigNumber.from("1000000000000000000")).toString();
-    console.log('Calculated Liquidity: ' + calculatedLiquidity + '  Shortfall: ' + calculatedShortfall);
+    calculatedLiquidity = res[1].toString();
+    calculatedShortfall = res[2].toString();
+    console.log('Calculated Liquidity (Raw): ' + calculatedLiquidity + '  Shortfall: ' + calculatedShortfall);
   }
 
 }
