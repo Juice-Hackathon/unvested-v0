@@ -70,6 +70,12 @@ const config: HardhatUserConfig = {
     },
     lender: {
       default: 1,
+    },
+    borrower1: {
+      default: 2,
+    },
+    borrower2: {
+      default: 3,
     }
   },
   networks: {

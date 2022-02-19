@@ -3,13 +3,13 @@ module.exports = async function ({ ethers, getNamedAccounts, getChainId, deploym
 
   const { deployer } = await getNamedAccounts()
 
-  const simplePriceOracle = await deployments.get("SimplePriceOracle")
+  const simplePriceOracle = await deployments.get("SimplePriceOracle");
   const comptrollerResult = await deploy("Comptroller", {
     from: deployer,
     args: [],
     log: true,
     deterministicDeployment: false
-  })
+  });
 
   await execute('Comptroller',{from: deployer, log: true}, '_setPriceOracle', simplePriceOracle.address);
   await execute('Comptroller',{from: deployer, log: true}, '_setMaxAssets', 10);

@@ -284,8 +284,47 @@
   {
     "inputs": [
       {
-        "internalType": "contract IVesting",
-        "name": "_vestingContract",
+        "internalType": "uint256",
+        "name": "_phaseOneCutoff",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_phaseTwoCutoff",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_phaseOneDiscountMantissa",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_phaseTwoDiscountMantissa",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_phaseThreeDiscountMantissa",
+        "type": "uint256"
+      }
+    ],
+    "name": "_setVestingNPVConfig",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_vestingContractAddress",
         "type": "address"
       }
     ],
@@ -893,8 +932,8 @@
   {
     "inputs": [
       {
-        "internalType": "contract IVesting",
-        "name": "_vestingContract",
+        "internalType": "address",
+        "name": "_vestingContractAddress",
         "type": "address"
       }
     ],
@@ -1107,6 +1146,30 @@
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "vestingCalculateNPV",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "contract IVesting",
         "name": "",
         "type": "address"
@@ -1134,10 +1197,43 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "vestingNPVConfig",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "phaseOneDiscountMantissa",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "phaseTwoDiscountMantissa",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "phaseThreeDiscountMantissa",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "phaseOneCutoff",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "phaseTwoCutoff",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
-        "internalType": "contract IVesting",
-        "name": "_vestingContract",
+        "internalType": "address",
+        "name": "_vestingContractAddress",
         "type": "address"
       }
     ],

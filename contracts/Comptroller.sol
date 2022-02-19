@@ -32,6 +32,19 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         mapping(address => bool) accountMembership;
     }
 
+    // Paramters for calculating NPV of Collateral for single Market
+    // set with admin function _setVestingNPVConfig
+    struct VestingNPVConfig {
+        uint phaseOneDiscountMantissa;
+        uint phaseTwoDiscountMantissa;
+        uint phaseThreeDiscountMantissa;
+        uint256 phaseOneCutoff;
+        uint256 phaseTwoCutoff;
+    }
+
+    VestingNPVConfig public vestingNPVConfig; //instantiating VestingNPVConfig
+
+
     struct VestingContractInfo {
         // Whether or not this vesting contract is listed
         bool isListed;
@@ -134,7 +147,9 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
     /**
      * @notice Registers vesting contract. Validates the recipient is the vault contract and then sets enabled as collateral to true
      */
-    function registerVestingContract(IVesting _vestingContract) external {
+    function registerVestingContract(address _vestingContractAddress) external override {
+        IVesting _vestingContract = IVesting(_vestingContractAddress);
+        
         // Require collateral is listed
         require(vestingContractInfo[_vestingContract].isListed, "Must be listed");
 
@@ -158,7 +173,8 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         _vestingContract.setRecipient(vestingContractInfo[_vestingContract].vestingContractWrapper);
     }
 
-    function withdrawVestingContract(IVesting _vestingContract) external {
+    function withdrawVestingContract(address _vestingContractAddress) external override {
+        IVesting _vestingContract = IVesting(_vestingContractAddress);
         // Validate that the recipient of the vesting contract has been set by the owner
         address originalRecipient = IVestingContractWrapper(vestingContractInfo[_vestingContract].vestingContractWrapper).originalRecipient();
         require(_vestingContract.recipient() == address(_vestingContract) , "Please set recipient to vault contract");
@@ -651,6 +667,46 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
     /*** Liquidity/Liquidation Calculations ***/
 
     /**
+     * @notice Calculates the NPV of a collateral vesting contract for a given originalOwner
+     * @param owner The original owner / recipient of the vesting Collateral
+     * @dev Note that we calculate the exchangeRateStored for each collateral cToken using stored data,
+     *  without calculating accumulated interest.
+     * @return (possible error code,
+     *          accountLiquidity)
+     */
+
+    function vestingCalculateNPV(address owner) external override view  returns (uint, uint256) {
+        // Find if owner has any listed contracts enabled as Collateral
+        
+        // Confirm there exists a mapping from owner to a vesting contract, otherwise owner did not register any contract
+        require(IVesting(accountToVesting[owner]).recipient() != address(0),"No vesting registered to owner");
+
+        // Require collateral is listed
+        require(vestingContractInfo[accountToVesting[owner]].isListed, "Must be listed");
+
+        // Require collateral is enabled already
+        require(vestingContractInfo[accountToVesting[owner]].enabledAsCollateral, "Must be enabled");
+
+        IVestingContractWrapper _vestingWrapper = IVestingContractWrapper(vestingContractInfo[accountToVesting[owner]].vestingContractWrapper);
+
+        uint err;
+        uint256 calculatedNPV;    
+
+        (err, calculatedNPV) = _vestingWrapper.getNPV( vestingNPVConfig.phaseOneCutoff,
+            vestingNPVConfig.phaseTwoCutoff,
+            vestingNPVConfig.phaseOneDiscountMantissa,
+            vestingNPVConfig.phaseTwoDiscountMantissa,
+            vestingNPVConfig.phaseThreeDiscountMantissa);
+
+        if (err != 0) {
+            return (uint(Error.MATH_ERROR),0);
+        } else {
+            return (uint(Error.NO_ERROR), calculatedNPV);
+        }   
+
+    }
+
+    /**
      * @dev Local vars for avoiding stack-depth limits in calculating account liquidity.
      *  Note that `cTokenBalance` is the number of cTokens the account owns in the market,
      *  whereas `borrowBalance` is the amount of underlying that the account has borrowed.
@@ -839,6 +895,7 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
 
         return (uint(Error.NO_ERROR), seizeTokens);
     }
+    
 
     /*** Admin Functions ***/
 
@@ -1021,15 +1078,17 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
     /**
       * @notice Add the vesting contract collateral and list as collateral
       * @dev Admin function to set isListed and add support for the market
-      * @param _vestingContract to list as collateral
+      * @param _vestingContractAddress to list as collateral
       * @return uint 0=success, otherwise a failure. (See enum Error for details)
       */
-    function _supportCollateralVault(IVesting _vestingContract) external returns (uint) {
+    function _supportCollateralVault(address _vestingContractAddress) external returns (uint) {
         if (msg.sender != admin) {
             return fail(Error.UNAUTHORIZED, FailureInfo.SUPPORT_MARKET_OWNER_CHECK);
         }
 
-        require(vestingContractInfo[_vestingContract].isListed, "Vault listed");
+        IVesting _vestingContract = IVesting(_vestingContractAddress);
+
+        require(!vestingContractInfo[_vestingContract].isListed, "Vault listed");
 
         // Sanity check to make sure its really a vesting contract
         _vestingContract.vestingBegin();
@@ -1052,6 +1111,36 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
 
         return uint(Error.NO_ERROR);
     }
+
+    /**
+      * @notice sets the VestingNPVConfigValues
+      * @dev Admin function to set the VestingNPVConfig struct
+      * @param _phaseOneCutoff value in block time for first phase 
+      * @param _phaseOneDiscountMantissa discount factor (e.g. 0.5) per phase in Mantissa
+      * @return uint 0=success, otherwise a failure. (See enum Error for details)
+      */
+    function _setVestingNPVConfig(
+        uint256 _phaseOneCutoff,
+        uint256 _phaseTwoCutoff,
+        uint _phaseOneDiscountMantissa,
+        uint _phaseTwoDiscountMantissa,
+        uint _phaseThreeDiscountMantissa) external returns (uint) {
+        if (msg.sender != admin) {
+            return fail(Error.UNAUTHORIZED, FailureInfo.SUPPORT_MARKET_OWNER_CHECK);
+        }
+
+        require(_phaseOneCutoff <= _phaseTwoCutoff, "phaseOneCutoff must be less than phaseTwo");
+
+        vestingNPVConfig.phaseOneCutoff = _phaseOneCutoff;
+        vestingNPVConfig.phaseTwoCutoff = _phaseTwoCutoff;
+        vestingNPVConfig.phaseOneDiscountMantissa = _phaseOneDiscountMantissa;
+        vestingNPVConfig.phaseTwoDiscountMantissa = _phaseTwoDiscountMantissa;
+        vestingNPVConfig.phaseThreeDiscountMantissa = _phaseThreeDiscountMantissa;
+
+        return uint(Error.NO_ERROR);
+    }
+
+
 
     /**
      * @dev Check that caller is admin or this contract is initializing itself as
