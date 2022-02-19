@@ -747,6 +747,19 @@
   {
     "inputs": [
       {
+        "internalType": "contract IVesting",
+        "name": "_vestingContract",
+        "type": "address"
+      }
+    ],
+    "name": "liquidatorClaimOwedTokens",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "",
         "type": "address"
@@ -1090,22 +1103,22 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "liquidator",
+        "name": "_liquidator",
         "type": "address"
       },
       {
         "internalType": "address",
-        "name": "borrower",
+        "name": "_borrower",
         "type": "address"
       },
       {
         "internalType": "uint256",
-        "name": "seizeTokens",
+        "name": "_seizeTokens",
         "type": "uint256"
       },
       {
         "internalType": "contract IVesting",
-        "name": "vestingContract",
+        "name": "_vestingContract",
         "type": "address"
       }
     ],
@@ -1230,6 +1243,16 @@
         "internalType": "address",
         "name": "vestingContractWrapper",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "unvestedTokenLiquidator",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amountOwedToLiquidator",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",

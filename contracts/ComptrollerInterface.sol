@@ -71,6 +71,7 @@ abstract contract ComptrollerInterface {
         uint seizeTokens,
         IVesting vestingContract
     ) external virtual returns (uint);
+    function liquidatorClaimOwedTokens(IVesting _vestingContract) external virtual;
 
     function transferAllowed(address cToken, address src, address dst, uint transferTokens) external virtual returns (uint);
     function transferVerify(address cToken, address src, address dst, uint transferTokens) external virtual;

@@ -13,6 +13,7 @@ import { IVesting } from "./interfaces/IVesting.sol";
 import { VestingContractWrapper } from "./VestingContractWrapper.sol";
 import { IVestingContractWrapper } from "./interfaces/IVestingContractWrapper.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./SafeMath.sol";
 import "hardhat/console.sol";
 
 /**
@@ -21,6 +22,8 @@ import "hardhat/console.sol";
  *  We keep it so our tests can continue to do the real-life behavior of upgrading from this logic forward.
  */
 contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerErrorReporter, Exponential, ReentrancyGuard {
+    using SafeMath for uint256;
+
     struct Market {
         // Whether or not this market is listed
         bool isListed;
@@ -54,6 +57,8 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         bool isListed;
         bool enabledAsCollateral;
         address vestingContractWrapper;
+        address unvestedTokenLiquidator;
+        uint256 amountOwedToLiquidator;
     }
 
     /**
@@ -194,6 +199,9 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
             require(borrowBalance == 0, "Must pay off debt");
         }
 
+        // Validate that there is no pending liquidator owed tokens
+        require(vestingContractInfo[_vestingContract].amountOwedToLiquidator == 0, "Amount owed to previous liquidator");
+
         // Set enabled collateral to false and delete account to vault mapping
         delete vestingContractInfo[_vestingContract].enabledAsCollateral;
         delete accountToVesting[msg.sender];
@@ -314,37 +322,76 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         return uint(Error.NO_ERROR);
     }
 
-    function seizeVestingTokens(address liquidator, address borrower, uint seizeTokens, IVesting vestingContract) external override nonReentrant returns (uint) {
+    function seizeVestingTokens(address _liquidator, address _borrower, uint _seizeTokens, IVesting _vestingContract) external override nonReentrant returns (uint) {
         // msg.sender is the cToken
         uint allowed = seizeAllowed(
-            vestingContractInfo[vestingContract].vestingContractWrapper,
+            vestingContractInfo[_vestingContract].vestingContractWrapper,
             msg.sender,
-            liquidator,
-            borrower,
-            seizeTokens
+            _liquidator,
+            _borrower,
+            _seizeTokens
         );
         require(allowed == 0, "Not allowed");
-
-        require(borrower != liquidator, "Borrower is liquidator");
+        // We only allow one liquidator at a time for unvested for simplicity. Otherwise liquidators can overwrite each other's owed tokens when 
+        // liquidating unvested tokens
+        require(vestingContractInfo[_vestingContract].amountOwedToLiquidator == 0, "Amount owed to previous liquidator");
+        require(_borrower != _liquidator, "Borrower is _liquidator");
 
         // Call claim to ensure vested but unclaimed tokens are liquid in this vesting contract wrapper
-        vestingContract.claim();
+        _vestingContract.claim();
         
-        // If seized tokens is less than liquid amount, then transfer seize tokens to liquidator
-        uint256 currentLiquidBalance = IERC20(vestingContract.vestingToken()).balanceOf(vestingContractInfo[vestingContract].vestingContractWrapper);
-        if (seizeTokens <= currentLiquidBalance) {
-            IERC20(vestingContract.vestingToken()).transferFrom(
-                vestingContractInfo[vestingContract].vestingContractWrapper,
-                liquidator,
-                seizeTokens
+        // If seized tokens is less than liquid amount, then transfer seize tokens to _liquidator
+        uint256 currentLiquidBalance = IERC20(_vestingContract.vestingToken()).balanceOf(vestingContractInfo[_vestingContract].vestingContractWrapper);
+        if (_seizeTokens <= currentLiquidBalance) {
+            IERC20(_vestingContract.vestingToken()).transferFrom(
+                vestingContractInfo[_vestingContract].vestingContractWrapper,
+                _liquidator,
+                _seizeTokens
             );
-            console.log("To Transfer", seizeTokens);
+            console.log("To Transfer", _seizeTokens);
         } else {
-            // TODO Transfer existing balance to liquidator and store state
             console.log("In unvested");
+
+            // TODO Get NPV of seizeTokens and replace in amountOwedToLiquidator
+
+            vestingContractInfo[_vestingContract].unvestedTokenLiquidator = _liquidator;
+            vestingContractInfo[_vestingContract].amountOwedToLiquidator = _seizeTokens.sub(currentLiquidBalance);
+
+            IERC20(_vestingContract.vestingToken()).transferFrom(
+                vestingContractInfo[_vestingContract].vestingContractWrapper,
+                _liquidator,
+                currentLiquidBalance
+            );
         }
 
         return uint(Error.NO_ERROR);
+    }
+
+    function liquidatorClaimOwedTokens(IVesting _vestingContract) external override nonReentrant {
+        require(msg.sender == vestingContractInfo[_vestingContract].unvestedTokenLiquidator);
+        
+        _vestingContract.claim();
+        uint256 currentLiquidBalance = IERC20(_vestingContract.vestingToken()).balanceOf(vestingContractInfo[_vestingContract].vestingContractWrapper);
+        // If owed amount is less than liquid, transfer owed amount and reset state
+        if (vestingContractInfo[_vestingContract].amountOwedToLiquidator <= currentLiquidBalance) {        
+            IERC20(_vestingContract.vestingToken()).transferFrom(
+                vestingContractInfo[_vestingContract].vestingContractWrapper,
+                msg.sender,
+                vestingContractInfo[_vestingContract].amountOwedToLiquidator
+            );
+
+            delete vestingContractInfo[_vestingContract].amountOwedToLiquidator;
+            delete vestingContractInfo[_vestingContract].unvestedTokenLiquidator;
+        } else {
+            IERC20(_vestingContract.vestingToken()).transferFrom(
+                vestingContractInfo[_vestingContract].vestingContractWrapper,
+                msg.sender,
+                currentLiquidBalance
+            );
+
+            // Sub liquid tokens transferred back
+            vestingContractInfo[_vestingContract].amountOwedToLiquidator = vestingContractInfo[_vestingContract].amountOwedToLiquidator.sub(currentLiquidBalance);
+        }
     }
 
     /*** Policy Hooks ***/
@@ -1163,7 +1210,9 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         vestingContractInfo[_vestingContract] = VestingContractInfo({
             isListed: true,
             enabledAsCollateral: false,
-            vestingContractWrapper: address(vestingContractWrapper)
+            vestingContractWrapper: address(vestingContractWrapper),
+            unvestedTokenLiquidator: address(0),
+            amountOwedToLiquidator: 0
         });
 
         return uint(Error.NO_ERROR);
