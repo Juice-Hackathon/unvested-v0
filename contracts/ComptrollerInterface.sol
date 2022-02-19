@@ -8,6 +8,9 @@ abstract contract ComptrollerInterface {
 
     /*** Assets You Are In ***/
 
+    function registerVestingContract(address _vestingContractAddress) external virtual;
+    function withdrawVestingContract(address _vestingContractAddress) external virtual;
+
     function enterMarkets(address[] calldata cTokens) external virtual returns (uint[] memory);
     function exitMarket(address cToken) external virtual returns (uint);
 
@@ -63,6 +66,8 @@ abstract contract ComptrollerInterface {
 
     function transferAllowed(address cToken, address src, address dst, uint transferTokens) external virtual returns (uint);
     function transferVerify(address cToken, address src, address dst, uint transferTokens) external virtual;
+
+    function vestingCalculateNPV(address owner) external virtual view returns (uint, uint256);
 
     /*** Liquidity/Liquidation Calculations ***/
 

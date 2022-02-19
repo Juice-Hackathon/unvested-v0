@@ -36,8 +36,8 @@ module.exports = async function ({ ethers, getNamedAccounts, getChainId, deploym
   await execute("StandardTokenMock",{from: deployer, log: true}, 'approve', CErc20.address, ether(10000000));
   console.log("Approved USDC to fUSDC");
 
-
-  await execute("CErc20",{from: deployer, log: true},'mint',BigNumber.from(10000000));
+  // Mint $1M fUSDC
+  await execute("CErc20",{from: deployer, log: true},'mint',BigNumber.from(1000000000000));
   console.log("Minted fUSDC");
   
 }

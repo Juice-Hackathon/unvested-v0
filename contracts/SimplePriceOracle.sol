@@ -23,6 +23,10 @@ contract SimplePriceOracle is PriceOracle {
         return prices[_getUnderlyingAddress(cToken)];
     }
 
+    function getPrice(address asset) public view override returns (uint) {
+        return prices[asset];
+    }
+
     function setUnderlyingPrice(CToken cToken, uint underlyingPriceMantissa) public {
         address asset = _getUnderlyingAddress(cToken);
         emit PricePosted(asset, prices[asset], underlyingPriceMantissa, underlyingPriceMantissa);

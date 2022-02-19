@@ -3,22 +3,19 @@ module.exports = async function ({ ethers, getNamedAccounts, getChainId, deploym
 
   const { deployer } = await getNamedAccounts()
 
-  const simplePriceOracle = await deployments.get("SimplePriceOracle")
+  const simplePriceOracle = await deployments.get("SimplePriceOracle");
   const comptrollerResult = await deploy("Comptroller", {
     from: deployer,
     args: [],
     log: true,
     deterministicDeployment: false
-  })
+  });
 
   await execute('Comptroller',{from: deployer, log: true}, '_setPriceOracle', simplePriceOracle.address);
   await execute('Comptroller',{from: deployer, log: true}, '_setMaxAssets', 10);
   await execute('Comptroller',{from: deployer, log: true}, '_setCloseFactor', '5000000000000000000');
   await execute('Comptroller',{from: deployer, log: true}, '_setLiquidationIncentive', '1080000000000000000');
   
-  //await comptroller._setMaxAssets(10);
-  //await comptroller._setCloseFactor('5000000000000000000');
-  //await comptroller._setLiquidationIncentive('1080000000000000000');
 
   console.log('comptroller deployed');
 }

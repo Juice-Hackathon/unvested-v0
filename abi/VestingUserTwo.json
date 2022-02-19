@@ -1,5 +1,41 @@
 [
   {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "vestingToken_",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "recipient_",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "vestingAmount_",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "vestingBegin_",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "vestingCliff_",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "vestingEnd_",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
     "inputs": [],
     "name": "claim",
     "outputs": [],

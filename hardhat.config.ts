@@ -70,6 +70,12 @@ const config: HardhatUserConfig = {
     },
     lender: {
       default: 1,
+    },
+    borrower1: {
+      default: 2,
+    },
+    borrower2: {
+      default: 3,
     }
   },
   networks: {
@@ -129,16 +135,16 @@ const config: HardhatUserConfig = {
       gasPrice: 5000000000,
       gasMultiplier: 2,
     },*/
-    //kovan: {
-    //  url: `https://kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    //  accounts: [`0x${process.env.KOVAN_DEPLOY_PRIVATE_KEY}`],
-    //  chainId: 42,
-    //  live: true,
-    //  saveDeployments: true,
-    //  tags: ["staging"],
-    //  gasPrice: 20000000000,
-    //  gasMultiplier: 2,
-    //},
+    /*kovan: {
+     url: `https://kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,
+     accounts: [`0x${process.env.KOVAN_DEPLOY_PRIVATE_KEY}`],
+     chainId: 42,
+     live: true,
+     saveDeployments: true,
+     tags: ["staging"],
+     gasPrice: 20000000000,
+     gasMultiplier: 2,
+    },*/
     /*
     matic: {
       url: "https://rpc-mainnet.maticvigil.com",
@@ -216,9 +222,9 @@ const config: HardhatUserConfig = {
     username: process.env.TENDERLY_USERNAME!,
   },
   //typechain: {
-  //  outDir: "typechain",
-  //  target: "ethers-v5",
-  //  externalArtifacts: ["external/**/*.json"],
+  // outDir: "typechain",
+  // target: "ethers-v5",
+  // externalArtifacts: ["external/**/*.json"],
   //},
   watcher: {
     compile: {

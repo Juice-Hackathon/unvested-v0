@@ -8,10 +8,13 @@ import "./Exponential.sol";
 import "./PriceOracle.sol";
 import "./ComptrollerInterface.sol";
 import "./ComptrollerStorage.sol";
+import { IVesting } from "./interfaces/IVesting.sol";
+import { VestingContractWrapper } from "./VestingContractWrapper.sol";
+import { IVestingContractWrapper } from "./interfaces/IVestingContractWrapper.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title Compound's Comptroller Contract
- * @author Compound
  * @dev This was the first version of the Comptroller brains.
  *  We keep it so our tests can continue to do the real-life behavior of upgrading from this logic forward.
  */
@@ -29,11 +32,37 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         mapping(address => bool) accountMembership;
     }
 
+    // Paramters for calculating NPV of Collateral for single Market
+    // set with admin function _setVestingNPVConfig
+    struct VestingNPVConfig {
+        address underlyingAddress;
+        uint phaseOneDiscountMantissa;
+        uint phaseTwoDiscountMantissa;
+        uint phaseThreeDiscountMantissa;
+        uint256 phaseOneCutoff;
+        uint256 phaseTwoCutoff;
+        uint collateralFactorMantissa;
+    }
+
+    VestingNPVConfig public vestingNPVConfig; //instantiating VestingNPVConfig
+
+
+    struct VestingContractInfo {
+        // Whether or not this vesting contract is listed
+        bool isListed;
+        bool enabledAsCollateral;
+        address vestingContractWrapper;
+    }
+
     /**
      * @notice Official mapping of cTokens -> Market metadata
      * @dev Used e.g. to determine if a market is supported
      */
     mapping(address => Market) public markets;
+    mapping(IVesting => VestingContractInfo) public vestingContractInfo;
+
+    // Mapping of account to vesting contract
+    mapping(address => IVesting) public accountToVesting;
 
     /**
      * @notice Emitted when an admin supports a market
@@ -118,10 +147,70 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
     }
 
     /**
-     * @notice Add assets to be included in account liquidity calculation
-     * @param cTokens The list of addresses of the cToken markets to be enabled
-     * @return Success indicator for whether each corresponding market was entered
+     * @notice Registers vesting contract. Validates the recipient is the vault contract and then sets enabled as collateral to true
      */
+    function registerVestingContract(address _vestingContractAddress) external override {
+        IVesting _vestingContract = IVesting(_vestingContractAddress);
+        
+        // Require collateral is listed
+        require(vestingContractInfo[_vestingContract].isListed, "Must be listed");
+
+        // Require collateral is not enabled yet
+        require(!vestingContractInfo[_vestingContract].enabledAsCollateral, "Must not be enabled");
+
+        // Validate that the recipient of the vesting contract is this Comptroller
+        require(_vestingContract.recipient() == address(this) , "Recipient must be Comptroller");
+
+        // Validate original recipient is caller. This assumes that vestingContractWrapper is already deployed in _supportCollateralVault
+        require(
+            IVestingContractWrapper(vestingContractInfo[_vestingContract].vestingContractWrapper).originalRecipient() == msg.sender,
+            "Original recipient must be caller"
+        );
+
+        // Enable collateral for user in the Comptroller
+        vestingContractInfo[_vestingContract].enabledAsCollateral = true;
+        accountToVesting[msg.sender] = _vestingContract;
+
+        // Set recipient from this to vesting contract wrapper
+        _vestingContract.setRecipient(vestingContractInfo[_vestingContract].vestingContractWrapper);
+    }
+
+    function withdrawVestingContract(address _vestingContractAddress) external override {
+        IVesting _vestingContract = IVesting(_vestingContractAddress);
+        // Validate that the recipient of the vesting contract has been set by the owner
+        address originalRecipient = IVestingContractWrapper(vestingContractInfo[_vestingContract].vestingContractWrapper).originalRecipient();
+        require(_vestingContract.recipient() == vestingContractInfo[_vestingContract].vestingContractWrapper, "Please set recipient to vault contract");
+        require(originalRecipient == msg.sender , "Original recipient must be caller");
+
+        // Validate all debt is repaid to withdraw contract
+        CToken[] memory assets = accountAssets[msg.sender];
+        for (uint i = 0; i < assets.length; i++) {
+            CToken asset = assets[i];
+
+            // Read the balances and exchange rate from the cToken
+            ( , , uint256 borrowBalance, ) = asset.getAccountSnapshot(msg.sender);
+            require(borrowBalance == 0, "Must pay off debt");
+        }
+
+        // Set enabled collateral to false and delete account to vault mapping
+        delete vestingContractInfo[_vestingContract].enabledAsCollateral;
+        delete accountToVesting[msg.sender];
+
+        // Transfer recipient back from wrapper to original recipient
+        IVestingContractWrapper(vestingContractInfo[_vestingContract].vestingContractWrapper).setOriginalRecipient();
+
+        // Transfer existing balance of tokens FROM vesting vault TO original recipient in case tokens were claimed to user
+        IERC20 vestingToken = IERC20(_vestingContract.vestingToken());
+        uint256 balance = vestingToken.balanceOf(vestingContractInfo[_vestingContract].vestingContractWrapper);
+        vestingToken.transferFrom(
+            vestingContractInfo[_vestingContract].vestingContractWrapper,
+            originalRecipient,
+            balance
+        );
+    }
+    
+    // IMPORTANT: Only used to enter the lending token market so borrower can execute borrows
+    // The collateral vesting contract will be tracked separately. In this case, there will only be one USDC cToken allowed
     function enterMarkets(address[] memory cTokens) public override returns (uint[] memory) {
         uint len = cTokens.length;
 
@@ -587,6 +676,46 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
     /*** Liquidity/Liquidation Calculations ***/
 
     /**
+     * @notice Calculates the NPV of a collateral vesting contract for a given originalOwner
+     * @param owner The original owner / recipient of the vesting Collateral
+     * @dev Note that we calculate the exchangeRateStored for each collateral cToken using stored data,
+     *  without calculating accumulated interest.
+     * @return (possible error code,
+     *          accountLiquidity)
+     */
+
+    function vestingCalculateNPV(address owner) public override view returns (uint, uint256) {
+        // Find if owner has any listed contracts enabled as Collateral
+        
+        // Confirm there exists a mapping from owner to a vesting contract, otherwise owner did not register any contract
+        require(IVesting(accountToVesting[owner]).recipient() != address(0),"No vesting registered to owner");
+
+        // Require collateral is listed
+        require(vestingContractInfo[accountToVesting[owner]].isListed, "Must be listed");
+
+        // Require collateral is enabled already
+        require(vestingContractInfo[accountToVesting[owner]].enabledAsCollateral, "Must be enabled");
+
+        IVestingContractWrapper _vestingWrapper = IVestingContractWrapper(vestingContractInfo[accountToVesting[owner]].vestingContractWrapper);
+
+        uint err;
+        uint256 calculatedNPV;    
+
+        (err, calculatedNPV) = _vestingWrapper.getNPV(vestingNPVConfig.phaseOneCutoff,
+            vestingNPVConfig.phaseTwoCutoff,
+            vestingNPVConfig.phaseOneDiscountMantissa,
+            vestingNPVConfig.phaseTwoDiscountMantissa,
+            vestingNPVConfig.phaseThreeDiscountMantissa);
+
+        if (err != 0) {
+            return (uint(Error.MATH_ERROR),0);
+        } else {
+            return (uint(Error.NO_ERROR), calculatedNPV);
+        }   
+
+    }
+
+    /**
      * @dev Local vars for avoiding stack-depth limits in calculating account liquidity.
      *  Note that `cTokenBalance` is the number of cTokens the account owns in the market,
      *  whereas `borrowBalance` is the amount of underlying that the account has borrowed.
@@ -598,6 +727,7 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         uint borrowBalance;
         uint exchangeRateMantissa;
         uint oraclePriceMantissa;
+        uint collateralNPV;
         Exp collateralFactor;
         Exp exchangeRate;
         Exp oraclePrice;
@@ -648,7 +778,39 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         uint oErr;
         MathError mErr;
 
-        // For each asset the account is in
+        // Collateral vesting contract value calculation
+        // collareral = NPV * collaralFactor * underlyingPrice (in Ether)
+
+        // calculate NPV of collateral (checks if account has vestingContract)
+        (oErr, vars.collateralNPV)= vestingCalculateNPV(account);
+        if (oErr != 0) {
+            return (Error.MATH_ERROR, 0, 0);
+        }    
+
+        // get underlying price
+        vars.oraclePriceMantissa = oracle.getPrice(vestingNPVConfig.underlyingAddress);
+        if (vars.oraclePriceMantissa == 0) {
+            return (Error.PRICE_ERROR, 0, 0);
+        }
+        vars.oraclePrice = Exp({mantissa: vars.oraclePriceMantissa});
+
+
+        vars.collateralFactor = Exp({mantissa: vestingNPVConfig.collateralFactorMantissa});
+
+        // calculate tokensToEther = collareralFactor * oraclePrice
+        (mErr, vars.tokensToEther) = mulExp(vars.collateralFactor, vars.oraclePrice);
+        if (mErr != MathError.NO_ERROR) {
+            return (Error.MATH_ERROR, 0, 0);
+        }
+
+        // sumCollateral += tokensToEther * NPV Value
+        (mErr, vars.sumCollateral) = mulScalarTruncateAddUInt(vars.tokensToEther, vars.collateralNPV, vars.sumCollateral);
+        if (mErr != MathError.NO_ERROR) {
+            return (Error.MATH_ERROR, 0, 0);
+        }
+
+
+        // For each asset the account is in  -> will only apply to stablecoin side (i = 1)
         CToken[] memory assets = accountAssets[account];
         for (uint i = 0; i < assets.length; i++) {
             CToken asset = assets[i];
@@ -667,6 +829,7 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
                 return (Error.PRICE_ERROR, 0, 0);
             }
             vars.oraclePrice = Exp({mantissa: vars.oraclePriceMantissa});
+
 
             // Pre-compute a conversion factor from tokens -> ether (normalized price value)
             (mErr, vars.tokensToEther) = mulExp3(vars.collateralFactor, vars.exchangeRate, vars.oraclePrice);
@@ -763,6 +926,7 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
 
         return (uint(Error.NO_ERROR), seizeTokens);
     }
+    
 
     /*** Admin Functions ***/
 
@@ -941,6 +1105,80 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
 
         return uint(Error.NO_ERROR);
     }
+
+    /**
+      * @notice Add the vesting contract collateral and list as collateral
+      * @dev Admin function to set isListed and add support for the market
+      * @param _vestingContractAddress to list as collateral
+      * @return uint 0=success, otherwise a failure. (See enum Error for details)
+      */
+    function _supportCollateralVault(address _vestingContractAddress) external returns (uint) {
+        if (msg.sender != admin) {
+            return fail(Error.UNAUTHORIZED, FailureInfo.SUPPORT_MARKET_OWNER_CHECK);
+        }
+
+        IVesting _vestingContract = IVesting(_vestingContractAddress);
+
+        require(!vestingContractInfo[_vestingContract].isListed, "Vault listed");
+
+        // Sanity check to make sure its really a vesting contract
+        _vestingContract.vestingBegin();
+
+        // Check if collateral vault is deployed for user
+        VestingContractWrapper vestingContractWrapper;
+        if (vestingContractInfo[_vestingContract].vestingContractWrapper == address(0)) {
+            // Deploy vesting collateral wrapper
+            vestingContractWrapper = new VestingContractWrapper(
+                _vestingContract,
+                this
+            );
+        }
+
+        vestingContractInfo[_vestingContract] = VestingContractInfo({
+            isListed: true,
+            enabledAsCollateral: false,
+            vestingContractWrapper: address(vestingContractWrapper)
+        });
+
+        return uint(Error.NO_ERROR);
+    }
+
+    /**
+      * @notice sets the VestingNPVConfigValues
+      * @dev Admin function to set the VestingNPVConfig struct
+      * @param _phaseOneCutoff value in block time for first phase 
+      * @param _phaseOneDiscountMantissa discount factor (e.g. 0.5) per phase in Mantissa
+      * @return uint 0=success, otherwise a failure. (See enum Error for details)
+      */
+    function _setVestingNPVConfig(
+        address _underlyingAddress,
+        uint256 _phaseOneCutoff,
+        uint256 _phaseTwoCutoff,
+        uint _phaseOneDiscountMantissa,
+        uint _phaseTwoDiscountMantissa,
+        uint _phaseThreeDiscountMantissa,
+        uint _collateralFactorMantissa) external returns (uint) {
+        if (msg.sender != admin) {
+            return fail(Error.UNAUTHORIZED, FailureInfo.SUPPORT_MARKET_OWNER_CHECK);
+        }
+
+        require(_phaseOneCutoff <= _phaseTwoCutoff, "phaseOneCutoff must be less than phaseTwo");
+
+        require(_collateralFactorMantissa <= collateralFactorMaxMantissa, "Collateral factor must be less than Max");
+        require(_collateralFactorMantissa >= closeFactorMinMantissa, "Collateral factor must be greater than min");
+
+        vestingNPVConfig.underlyingAddress = _underlyingAddress;
+        vestingNPVConfig.phaseOneCutoff = _phaseOneCutoff;
+        vestingNPVConfig.phaseTwoCutoff = _phaseTwoCutoff;
+        vestingNPVConfig.phaseOneDiscountMantissa = _phaseOneDiscountMantissa;
+        vestingNPVConfig.phaseTwoDiscountMantissa = _phaseTwoDiscountMantissa;
+        vestingNPVConfig.phaseThreeDiscountMantissa = _phaseThreeDiscountMantissa;
+        vestingNPVConfig.collateralFactorMantissa = _collateralFactorMantissa;
+
+        return uint(Error.NO_ERROR);
+    }
+
+
 
     /**
      * @dev Check that caller is admin or this contract is initializing itself as
