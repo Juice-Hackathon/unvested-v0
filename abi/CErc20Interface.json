@@ -50,8 +50,8 @@
         "type": "uint256"
       },
       {
-        "internalType": "contract CTokenInterface",
-        "name": "cTokenCollateral",
+        "internalType": "contract IVesting",
+        "name": "vestingContract",
         "type": "address"
       }
     ],

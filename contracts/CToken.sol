@@ -8,6 +8,7 @@ import "./ErrorReporter.sol";
 import "./Exponential.sol";
 import "./EIP20Interface.sol";
 import "./InterestRateModel.sol";
+import "./interfaces/IVesting.sol";
 
 /**
  * @title Compound's CToken Contract
@@ -923,25 +924,18 @@ abstract contract CToken is CTokenInterface, Exponential, TokenErrorReporter {
      * @notice The sender liquidates the borrowers collateral.
      *  The collateral seized is transferred to the liquidator.
      * @param borrower The borrower of this cToken to be liquidated
-     * @param cTokenCollateral The market in which to seize collateral from the borrower
      * @param repayAmount The amount of the underlying borrowed asset to repay
      * @return (uint, uint) An error code (0=success, otherwise a failure, see ErrorReporter.sol), and the actual repayment amount.
      */
-    function liquidateBorrowInternal(address borrower, uint repayAmount, CTokenInterface cTokenCollateral) internal nonReentrant returns (uint, uint) {
+    function liquidateBorrowInternal(address borrower, uint repayAmount, IVesting vestingContract) internal nonReentrant returns (uint, uint) {
         uint error = accrueInterest();
         if (error != uint(Error.NO_ERROR)) {
             // accrueInterest emits logs on errors, but we still want to log the fact that an attempted liquidation failed
             return (fail(Error(error), FailureInfo.LIQUIDATE_ACCRUE_BORROW_INTEREST_FAILED), 0);
         }
 
-        error = cTokenCollateral.accrueInterest();
-        if (error != uint(Error.NO_ERROR)) {
-            // accrueInterest emits logs on errors, but we still want to log the fact that an attempted liquidation failed
-            return (fail(Error(error), FailureInfo.LIQUIDATE_ACCRUE_COLLATERAL_INTEREST_FAILED), 0);
-        }
-
         // liquidateBorrowFresh emits borrow-specific logs on errors, so we don't need to
-        return liquidateBorrowFresh(msg.sender, borrower, repayAmount, cTokenCollateral);
+        return liquidateBorrowFresh(msg.sender, borrower, repayAmount, vestingContract);
     }
 
     /**
@@ -949,13 +943,12 @@ abstract contract CToken is CTokenInterface, Exponential, TokenErrorReporter {
      *  The collateral seized is transferred to the liquidator.
      * @param borrower The borrower of this cToken to be liquidated
      * @param liquidator The address repaying the borrow and seizing collateral
-     * @param cTokenCollateral The market in which to seize collateral from the borrower
      * @param repayAmount The amount of the underlying borrowed asset to repay
      * @return (uint, uint) An error code (0=success, otherwise a failure, see ErrorReporter.sol), and the actual repayment amount.
      */
-    function liquidateBorrowFresh(address liquidator, address borrower, uint repayAmount, CTokenInterface cTokenCollateral) internal returns (uint, uint) {
+    function liquidateBorrowFresh(address liquidator, address borrower, uint repayAmount, IVesting vestingContract) internal returns (uint, uint) {
         /* Fail if liquidate not allowed */
-        uint allowed = comptroller.liquidateBorrowAllowed(address(this), address(cTokenCollateral), liquidator, borrower, repayAmount);
+        uint allowed = comptroller.liquidateBorrowAllowed(address(this), vestingContract, liquidator, borrower, repayAmount);
         if (allowed != 0) {
             return (failOpaque(Error.COMPTROLLER_REJECTION, FailureInfo.LIQUIDATE_COMPTROLLER_REJECTION, allowed), 0);
         }
@@ -963,11 +956,6 @@ abstract contract CToken is CTokenInterface, Exponential, TokenErrorReporter {
         /* Verify market's block number equals current block number */
         if (accrualBlockNumber != getBlockNumber()) {
             return (fail(Error.MARKET_NOT_FRESH, FailureInfo.LIQUIDATE_FRESHNESS_CHECK), 0);
-        }
-
-        /* Verify cTokenCollateral market's block number equals current block number */
-        if (cTokenCollateral.accrualBlockNumber() != getBlockNumber()) {
-            return (fail(Error.MARKET_NOT_FRESH, FailureInfo.LIQUIDATE_COLLATERAL_FRESHNESS_CHECK), 0);
         }
 
         /* Fail if borrower = liquidator */
@@ -997,25 +985,27 @@ abstract contract CToken is CTokenInterface, Exponential, TokenErrorReporter {
         // (No safe failures beyond this point)
 
         /* We calculate the number of collateral tokens that will be seized */
-        (uint amountSeizeError, uint seizeTokens) = comptroller.liquidateCalculateSeizeTokens(address(this), address(cTokenCollateral), actualRepayAmount);
+        (uint amountSeizeError, uint seizeTokens) = comptroller.liquidateCalculateSeizeTokens(address(this), actualRepayAmount);
         require(amountSeizeError == uint(Error.NO_ERROR), "LIQUIDATE_COMPTROLLER_CALCULATE_AMOUNT_SEIZE_FAILED");
 
         /* Revert if borrower collateral token balance < seizeTokens */
-        require(cTokenCollateral.balanceOf(borrower) >= seizeTokens, "LIQUIDATE_SEIZE_TOO_MUCH");
+        address vestingToken = vestingContract.vestingToken();
+        require(EIP20Interface(vestingToken).balanceOf(address(vestingContract)) >= seizeTokens, "LIQUIDATE_SEIZE_TOO_MUCH");
 
-        // If this is also the collateral, run seizeInternal to avoid re-entrancy, otherwise make an external call
-        uint seizeError;
-        if (address(cTokenCollateral) == address(this)) {
-            seizeError = seizeInternal(address(this), liquidator, borrower, seizeTokens);
-        } else {
-            seizeError = cTokenCollateral.seize(liquidator, borrower, seizeTokens);
-        }
-
+        // THIS IS NO APPLICABLE TO OUR PROTOCOL. If this is also the collateral, run seizeInternal to avoid re-entrancy, otherwise make an external call
+        // uint seizeError;
+        // if (address(cTokenCollateral) == address(this)) {
+        //     seizeError = seizeInternal(address(this), liquidator, borrower, seizeTokens);
+        // } else {
+        //     seizeError = cTokenCollateral.seize(liquidator, borrower, seizeTokens);
+        // }
+        uint seizeError = comptroller.seizeVestingTokens(liquidator, borrower, seizeTokens, vestingContract);
+        
         /* Revert if seize tokens fails (since we cannot be sure of side effects) */
         require(seizeError == uint(Error.NO_ERROR), "token seizure failed");
 
         /* We emit a LiquidateBorrow event */
-        emit LiquidateBorrow(liquidator, borrower, actualRepayAmount, address(cTokenCollateral), seizeTokens);
+        emit LiquidateBorrow(liquidator, borrower, actualRepayAmount, address(vestingContract), seizeTokens);
 
         /* We call the defense hook */
         // unused function

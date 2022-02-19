@@ -2,6 +2,8 @@
 
 pragma solidity 0.6.10;
 
+import "./interfaces/IVesting.sol";
+
 abstract contract ComptrollerInterface {
     /// @notice Indicator that this is a Comptroller contract (for inspection)
     bool public constant isComptroller = true;
@@ -39,7 +41,7 @@ abstract contract ComptrollerInterface {
 
     function liquidateBorrowAllowed(
         address cTokenBorrowed,
-        address cTokenCollateral,
+        IVesting vestingContract,
         address liquidator,
         address borrower,
         uint repayAmount) external virtual returns (uint);
@@ -52,7 +54,7 @@ abstract contract ComptrollerInterface {
         uint seizeTokens) external virtual;
 
     function seizeAllowed(
-        address cTokenCollateral,
+        address vestingContractWrapper,
         address cTokenBorrowed,
         address liquidator,
         address borrower,
@@ -63,6 +65,12 @@ abstract contract ComptrollerInterface {
         address liquidator,
         address borrower,
         uint seizeTokens) external virtual;
+    function seizeVestingTokens(
+        address liquidator,
+        address borrower,
+        uint seizeTokens,
+        IVesting vestingContract
+    ) external virtual returns (uint);
 
     function transferAllowed(address cToken, address src, address dst, uint transferTokens) external virtual returns (uint);
     function transferVerify(address cToken, address src, address dst, uint transferTokens) external virtual;
@@ -73,6 +81,5 @@ abstract contract ComptrollerInterface {
 
     function liquidateCalculateSeizeTokens(
         address cTokenBorrowed,
-        address cTokenCollateral,
         uint repayAmount) external virtual view returns (uint, uint);
 }

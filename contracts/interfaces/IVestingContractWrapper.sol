@@ -2,8 +2,10 @@
 pragma solidity 0.6.10;
 
 import "./IVesting.sol";
+import "../ComptrollerInterface.sol";
 
 interface IVestingContractWrapper {
+    function comptroller() external view returns(ComptrollerInterface);
     function getVestedUnclaimedAmount() external view returns(uint256);
     function getLiquidAmount() external view returns(uint256);
     function getUnvestedAmount() external view returns(uint256);

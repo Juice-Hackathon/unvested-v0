@@ -14,6 +14,10 @@ import "hardhat/console.sol";
 
 // Wrapper for a single vesting contract that stores tokens while user is borrowing using protocol.
 // Each vesting vault must be added as enabled collateral in the Comptroller
+// Note there will only be 1 vesting contract per borrower. There are edge cases if borrower withdraws and transfers recipient to 
+// another address and registers borrowing which will deploy a new VestingContractWrapper.
+// Additionally, there may not be 2 vesting contracts for a single user, as that will overwrite accountToVesting to the latest vesting
+// contract registered
 contract VestingContractWrapper is IVestingContractWrapper, ComptrollerErrorReporter, Exponential {
     using SafeMath for uint256;
     using PreciseUnitMath for uint256;
@@ -43,7 +47,7 @@ contract VestingContractWrapper is IVestingContractWrapper, ComptrollerErrorRepo
 
     IVesting public override vestingContract;
     address public override originalRecipient;
-    ComptrollerInterface public comptroller;
+    ComptrollerInterface public override comptroller;
 
     // Store vesting contract parameters to save gas
     address public override vestingToken;
@@ -87,6 +91,7 @@ contract VestingContractWrapper is IVestingContractWrapper, ComptrollerErrorRepo
         IERC20(vestingToken).approve(address(comptroller), uint256(-1));
     }
 
+    // ONLY COMPTROLLER: Set recipient back to original
     function setOriginalRecipient() external override {
         require(msg.sender == address(comptroller), "Must be comptroller");
 
@@ -157,16 +162,6 @@ contract VestingContractWrapper is IVestingContractWrapper, ComptrollerErrorRepo
             partialPhaseTwoShare: vestingNPVInfo.timeRemaining.sub(_phaseOneCutoff).preciseDiv(vestingNPVInfo.timeRemaining),
             partialPhaseThreeShare: vestingNPVInfo.timeRemaining.sub(_phaseTwoCutoff).preciseDiv(vestingNPVInfo.timeRemaining)
         });
-
-        console.log("Vested amount %s", vestingNPVInfo.vestedAmount);
-        console.log("Phase one discount %s", vestingNPVInfo.phaseOneDiscount.mantissa);
-        console.log("Phase two discount %s", vestingNPVInfo.phaseTwoDiscount.mantissa);
-        console.log("Phase three discount %s", vestingNPVInfo.phaseThreeDiscount.mantissa);
-        console.log("Unvested amount %s", vestingNPVInfo.unvestedAmount);
-
-        console.log("Time remaiing %s", vestingNPVInfo.timeRemaining);
-        console.log("Vesting end %s", vestingEnd);
-        console.log("Block timestamp %s", block.timestamp);
 
         MathError mErr;
 

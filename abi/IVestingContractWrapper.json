@@ -1,6 +1,19 @@
 [
   {
     "inputs": [],
+    "name": "comptroller",
+    "outputs": [
+      {
+        "internalType": "contract ComptrollerInterface",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "getLiquidAmount",
     "outputs": [
       {
