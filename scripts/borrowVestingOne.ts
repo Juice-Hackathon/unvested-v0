@@ -1,5 +1,5 @@
 import { ethers, getNamedAccounts, deployments} from "hardhat";
-import { BigNumber } from "ethers";
+import { BigNumber, constants } from "ethers";
 import { executionAsyncResource } from "async_hooks";
 import {ether} from "../utils/common/unitsUtils"; 
 
@@ -14,7 +14,9 @@ async function main() {
   const vestingTwo = await deployments.get("VestingUserTwo");
   const jUSDC = await deployments.get("CErc20");
 
-  // IMPORTANT: Ensure you run registerVestingContract.ts first
+  // Register for market
+  await execute("Vesting", {from: borrower1, log: true}, "setRecipient",comptroller.address);
+  await execute("Comptroller", {from: borrower1, log: true}, "registerVestingContract", vestingOne.address);
 
   // Enters markets
   await execute("Comptroller", {from: borrower1, log: true}, "enterMarkets", [jUSDC.address]);
@@ -62,7 +64,6 @@ async function main() {
     const calculatedNPVPost = vestingCalculateNPVPost[1].toString();
     console.log('Post Borrow Calculated NPV (Raw): ' + calculatedNPVPost);
   }
-
   const accountLiquidityPost = await read("Comptroller", {},"getAccountLiquidity", borrower1);
   if (!accountLiquidityPost[0].isZero()) {
     console.log('error calculating NPV - ' + accountLiquidityPost[0].toString());
@@ -93,6 +94,28 @@ async function main() {
   } catch(e) {
     console.log("EXPECTED TO FAIL WITH ERROR: ", e);
   }
+
+  // Set oracle back to 10k and repay debt
+  await execute("SimplePriceOracle", {from: deployer, log: true}, "setDirectPrice", yfi.address, ether(10000));
+  await execute("StandardTokenMock", {from: borrower1, log: true}, "approve", jUSDC.address, '1000000000000000000');
+  await execute("CErc20", {from: deployer, log: true}, "repayBorrowBehalf", borrower1, constants.MaxUint256); // repay all debt FROM deployer on behalf of borrower
+
+  // Getting accountLiquidity with shortfall
+  const accountLiquidityAfterRepay = await read("Comptroller", {},"getAccountLiquidity", borrower1);
+
+  if (!accountLiquidityAfterRepay[0].isZero()) {
+    console.log('error calculating NPV - ' + accountLiquidityAfterRepay[0].toString());
+  } else {
+    const calculatedLiquidity = accountLiquidityAfterRepay[1].toString();
+    const calculatedShortfall = accountLiquidityAfterRepay[2].toString();
+    console.log('Post Repay Update Calculated Liquidity (Raw): ' + calculatedLiquidity + '  Shortfall: ' + calculatedShortfall);
+  }
+
+  // Withdraw Vesting contract
+  await execute("Comptroller", {from: borrower1, log: true}, "withdrawVestingContract", vestingOne.address);
+
+  const owner = await read("Vesting", {},"recipient");
+  console.log("Old recipient (Comptroller): ", comptroller.address, " New recipient: ", owner);
 }
 
 main()
