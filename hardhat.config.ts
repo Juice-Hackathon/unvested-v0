@@ -205,6 +205,15 @@ const config: HardhatUserConfig = {
       tags: ["staging"],
       gasMultiplier: 2,
     },
+    "metis-testnet": {
+      url: "https://stardust.metis.io/?owner=588",
+      accounts: [`0x${process.env.KOVAN_DEPLOY_PRIVATE_KEY}`],
+      chainId: 588,
+      live: true,
+      saveDeployments: true,
+      tags: ["staging"],
+      gasMultiplier: 2,
+    },
   },
   paths: {
     artifacts: "artifacts",
