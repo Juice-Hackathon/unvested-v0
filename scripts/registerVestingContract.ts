@@ -7,7 +7,7 @@ import { executionAsyncResource } from "async_hooks";
 async function main() {
 
   const { execute, read } = deployments;
-  const {deployer, lender, borrower1, borrower2} = await getNamedAccounts();
+  const {deployer, borrower1, borrower2} = await getNamedAccounts();
 
   const comptroller = await deployments.get("Comptroller");
   const vestingOne = await deployments.get("Vesting");
