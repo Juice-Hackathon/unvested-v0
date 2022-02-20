@@ -52,7 +52,7 @@ Deployed to Kovan, Arbitrum Rinkeby, Harmony testnet, Aurora testnet.
 - USDC: 0x8050676c6ca7ecC8Fef4e383DF7bF804BeF915D6
 - LINK: 0xD9C60E01F98232a9f48d2fD0bEe8271b90bA738d
 - PriceOracle: 0x400aF5d37438c0beB9Ae69b05919599b1E2fb556
-- LendingController: 0x400aF5d37438c0beB9Ae69b05919599b1E2fb556
+- LendingController: 0x19D46C4D663344646A29001aC39714c27Fbf0A17
 - InterestRateModel: 0xeBAe4bB9bD4774E143543Ad3c8A2c5e847308b83
 - StandardVestingContract - Borrower 1: 0xd516EA3cb011d5aCCDAa40F81bb41f975b7a0730
 - StandardVestingContract - Borrower 2: 0xbca55732A62b761Bf4BEa86c1024F7bDED9A3030
