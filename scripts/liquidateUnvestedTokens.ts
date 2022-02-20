@@ -54,7 +54,7 @@ async function main() {
 
   // Trigger shortfall
   await execute("SimplePriceOracle", {from: deployer, log: true}, "setDirectPrice", chainlink.address, ether(5));
-  console.log("Updated oracle price to: $2000");
+  console.log("Updated oracle price to: $3");
   
   // Getting accountLiquidity with shortfall
   const accountLiquidityShortFall = await read("Comptroller", {},"getAccountLiquidity", borrower1);
