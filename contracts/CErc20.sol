@@ -3,7 +3,6 @@
 pragma solidity 0.6.10;
 
 import "./CToken.sol";
-import "hardhat/console.sol";
 
 interface CompLike {
   function delegate(address delegatee) external;
@@ -133,11 +132,11 @@ contract CErc20 is CToken, CErc20Interface {
      *  The collateral seized is transferred to the liquidator.
      * @param borrower The borrower of this cToken to be liquidated
      * @param repayAmount The amount of the underlying borrowed asset to repay
-     * @param cTokenCollateral The market in which to seize collateral from the borrower
+     * @param vestingContract The market in which to seize collateral from the borrower
      * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
      */
-    function liquidateBorrow(address borrower, uint repayAmount, CTokenInterface cTokenCollateral) external override returns (uint) {
-        (uint err,) = liquidateBorrowInternal(borrower, repayAmount, cTokenCollateral);
+    function liquidateBorrow(address borrower, uint repayAmount, IVesting vestingContract) external override returns (uint) {
+        (uint err,) = liquidateBorrowInternal(borrower, repayAmount, vestingContract);
         return err;
     }
 

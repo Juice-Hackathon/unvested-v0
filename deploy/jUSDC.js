@@ -18,8 +18,8 @@ module.exports = async function ({ ethers, getNamedAccounts, getChainId, deploym
       comptrollerAddress,
       interestRateModelAddress,
       initialExchangeRateMantissa,
-      'Fulcrum USDC',
-      "fUSDC",
+      'Juice USDC',
+      "jUSDC",
       8],
     log: true,
     deterministicDeployment: false
@@ -36,8 +36,8 @@ module.exports = async function ({ ethers, getNamedAccounts, getChainId, deploym
   await execute("StandardTokenMock",{from: deployer, log: true}, 'approve', CErc20.address, ether(10000000));
   console.log("Approved USDC to fUSDC");
 
-  // Mint $1M fUSDC
-  await execute("CErc20",{from: deployer, log: true},'mint',BigNumber.from(1000000000000));
+  // Mint $3M jUSDC
+  await execute("CErc20",{from: deployer, log: true},'mint',BigNumber.from(3000000000000));
   console.log("Minted fUSDC");
   
 }

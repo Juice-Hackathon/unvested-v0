@@ -8,17 +8,22 @@ import "./Exponential.sol";
 import "./PriceOracle.sol";
 import "./ComptrollerInterface.sol";
 import "./ComptrollerStorage.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { IVesting } from "./interfaces/IVesting.sol";
 import { VestingContractWrapper } from "./VestingContractWrapper.sol";
 import { IVestingContractWrapper } from "./interfaces/IVestingContractWrapper.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./SafeMath.sol";
+import "hardhat/console.sol";
 
 /**
  * @title Compound's Comptroller Contract
  * @dev This was the first version of the Comptroller brains.
  *  We keep it so our tests can continue to do the real-life behavior of upgrading from this logic forward.
  */
-contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerErrorReporter, Exponential {
+contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerErrorReporter, Exponential, ReentrancyGuard {
+    using SafeMath for uint256;
+
     struct Market {
         // Whether or not this market is listed
         bool isListed;
@@ -52,6 +57,8 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         bool isListed;
         bool enabledAsCollateral;
         address vestingContractWrapper;
+        address unvestedTokenLiquidator;
+        uint256 amountOwedToLiquidator;
     }
 
     /**
@@ -64,45 +71,45 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
     // Mapping of account to vesting contract
     mapping(address => IVesting) public accountToVesting;
 
-    /**
-     * @notice Emitted when an admin supports a market
-     */
-    event MarketListed(CToken cToken);
+    // /**
+    //  * @notice Emitted when an admin supports a market
+    //  */
+    // event MarketListed(CToken cToken);
 
-    /**
-     * @notice Emitted when an account enters a market
-     */
-    event MarketEntered(CToken cToken, address account);
+    // /**
+    //  * @notice Emitted when an account enters a market
+    //  */
+    // event MarketEntered(CToken cToken, address account);
 
-    /**
-     * @notice Emitted when an account exits a market
-     */
-    event MarketExited(CToken cToken, address account);
+    // /**
+    //  * @notice Emitted when an account exits a market
+    //  */
+    // event MarketExited(CToken cToken, address account);
 
-    /**
-     * @notice Emitted when close factor is changed by admin
-     */
-    event NewCloseFactor(uint oldCloseFactorMantissa, uint newCloseFactorMantissa);
+    // /**
+    //  * @notice Emitted when close factor is changed by admin
+    //  */
+    // event NewCloseFactor(uint oldCloseFactorMantissa, uint newCloseFactorMantissa);
 
-    /**
-     * @notice Emitted when a collateral factor is changed by admin
-     */
-    event NewCollateralFactor(CToken cToken, uint oldCollateralFactorMantissa, uint newCollateralFactorMantissa);
+    // *
+    //  * @notice Emitted when a collateral factor is changed by admin
+     
+    // event NewCollateralFactor(CToken cToken, uint oldCollateralFactorMantissa, uint newCollateralFactorMantissa);
 
-    /**
-     * @notice Emitted when liquidation incentive is changed by admin
-     */
-    event NewLiquidationIncentive(uint oldLiquidationIncentiveMantissa, uint newLiquidationIncentiveMantissa);
+    // /**
+    //  * @notice Emitted when liquidation incentive is changed by admin
+    //  */
+    // event NewLiquidationIncentive(uint oldLiquidationIncentiveMantissa, uint newLiquidationIncentiveMantissa);
 
-    /**
-     * @notice Emitted when maxAssets is changed by admin
-     */
-    event NewMaxAssets(uint oldMaxAssets, uint newMaxAssets);
+    // /**
+    //  * @notice Emitted when maxAssets is changed by admin
+    //  */
+    // event NewMaxAssets(uint oldMaxAssets, uint newMaxAssets);
 
-    /**
-     * @notice Emitted when price oracle is changed
-     */
-    event NewPriceOracle(PriceOracle oldPriceOracle, PriceOracle newPriceOracle);
+    // /**
+    //  * @notice Emitted when price oracle is changed
+    //  */
+    // event NewPriceOracle(PriceOracle oldPriceOracle, PriceOracle newPriceOracle);
 
     // closeFactorMantissa must be strictly greater than this value
     uint constant closeFactorMinMantissa = 5e16; // 0.05
@@ -192,6 +199,9 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
             require(borrowBalance == 0, "Must pay off debt");
         }
 
+        // Validate that there is no pending liquidator owed tokens
+        require(vestingContractInfo[_vestingContract].amountOwedToLiquidator == 0, "Amount owed to previous liquidator");
+
         // Set enabled collateral to false and delete account to vault mapping
         delete vestingContractInfo[_vestingContract].enabledAsCollateral;
         delete accountToVesting[msg.sender];
@@ -244,8 +254,6 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
             //   and not whenever we want to check if an account is in a particular market
             marketToJoin.accountMembership[msg.sender] = true;
             accountAssets[msg.sender].push(cToken);
-
-            emit MarketEntered(cToken, msg.sender);
 
             results[i] = uint(Error.NO_ERROR);
         }
@@ -307,9 +315,81 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         storedList[assetIndex] = storedList[storedList.length - 1];
         storedList.pop();
 
-        emit MarketExited(cToken, msg.sender);
 
         return uint(Error.NO_ERROR);
+    }
+
+    function seizeVestingTokens(address _liquidator, address _borrower, uint _seizeTokens, IVesting _vestingContract) external override nonReentrant returns (uint) {
+        // msg.sender is the cToken
+        uint allowed = seizeAllowed(
+            vestingContractInfo[_vestingContract].vestingContractWrapper,
+            msg.sender,
+            _liquidator,
+            _borrower,
+            _seizeTokens
+        );
+        require(allowed == 0, "Not allowed");
+        // We only allow one liquidator at a time for unvested for simplicity. Otherwise liquidators can overwrite each other's owed tokens when 
+        // liquidating unvested tokens
+        require(vestingContractInfo[_vestingContract].amountOwedToLiquidator == 0, "Amount owed to previous liquidator");
+        require(_borrower != _liquidator, "Borrower is _liquidator");
+
+        // Call claim to ensure vested but unclaimed tokens are liquid in this vesting contract wrapper
+        _vestingContract.claim();
+        
+        // If seized tokens is less than liquid amount, then transfer seize tokens to _liquidator
+        uint256 currentLiquidBalance = IERC20(_vestingContract.vestingToken()).balanceOf(vestingContractInfo[_vestingContract].vestingContractWrapper);
+        if (_seizeTokens <= currentLiquidBalance) {
+            IERC20(_vestingContract.vestingToken()).transferFrom(
+                vestingContractInfo[_vestingContract].vestingContractWrapper,
+                _liquidator,
+                _seizeTokens
+            );
+            console.log("To Transfer", _seizeTokens);
+        } else {
+            console.log("In unvested");
+
+            IERC20(_vestingContract.vestingToken()).transferFrom(
+                vestingContractInfo[_vestingContract].vestingContractWrapper,
+                _liquidator,
+                currentLiquidBalance
+            );
+
+            // For this version we will not apply future value of seized tokens owed to liquidator. THis can be done by creating a 
+            // future value of remaining seize tokens and setting it as owed to liquidator. Then need to update get account liquidity
+            // buy applying a NPV *including* amountOwedToLiquidator
+            vestingContractInfo[_vestingContract].unvestedTokenLiquidator = _liquidator;
+            vestingContractInfo[_vestingContract].amountOwedToLiquidator = _seizeTokens.sub(currentLiquidBalance);
+        }
+
+        return uint(Error.NO_ERROR);
+    }
+
+    function liquidatorClaimOwedTokens(IVesting _vestingContract) external override nonReentrant {
+        require(msg.sender == vestingContractInfo[_vestingContract].unvestedTokenLiquidator);
+        
+        _vestingContract.claim();
+        uint256 currentLiquidBalance = IERC20(_vestingContract.vestingToken()).balanceOf(vestingContractInfo[_vestingContract].vestingContractWrapper);
+        // If owed amount is less than liquid, transfer owed amount and reset state
+        if (vestingContractInfo[_vestingContract].amountOwedToLiquidator <= currentLiquidBalance) {        
+            IERC20(_vestingContract.vestingToken()).transferFrom(
+                vestingContractInfo[_vestingContract].vestingContractWrapper,
+                msg.sender,
+                vestingContractInfo[_vestingContract].amountOwedToLiquidator
+            );
+
+            delete vestingContractInfo[_vestingContract].amountOwedToLiquidator;
+            delete vestingContractInfo[_vestingContract].unvestedTokenLiquidator;
+        } else {
+            IERC20(_vestingContract.vestingToken()).transferFrom(
+                vestingContractInfo[_vestingContract].vestingContractWrapper,
+                msg.sender,
+                currentLiquidBalance
+            );
+
+            // Sub liquid tokens transferred back
+            vestingContractInfo[_vestingContract].amountOwedToLiquidator = vestingContractInfo[_vestingContract].amountOwedToLiquidator.sub(currentLiquidBalance);
+        }
     }
 
     /*** Policy Hooks ***/
@@ -335,22 +415,22 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
     }
 
     /**
-     * @notice Validates mint and reverts on rejection. May emit logs.
+     * @notice Validates mint and reverts on rejection.
      * @param cToken Asset being minted
      * @param minter The address minting the tokens
      * @param mintAmount The amount of the underlying asset being minted
      * @param mintTokens The number of tokens being minted
      */
-    function mintVerify(address cToken, address minter, uint mintAmount, uint mintTokens) external override {
-        cToken;       // currently unused
-        minter;       // currently unused
-        mintAmount;   // currently unused
-        mintTokens;   // currently unused
+    // function mintVerify(address cToken, address minter, uint mintAmount, uint mintTokens) external override {
+    //     cToken;       // currently unused
+    //     minter;       // currently unused
+    //     mintAmount;   // currently unused
+    //     mintTokens;   // currently unused
 
-        if (false) {
-            maxAssets = maxAssets; // not pure
-        }
-    }
+    //     if (false) {
+    //         maxAssets = maxAssets; // not pure
+    //     }
+    // }
 
     /**
      * @notice Checks if the account should be allowed to redeem tokens in the given market
@@ -388,7 +468,7 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
     }
 
     /**
-     * @notice Validates redeem and reverts on rejection. May emit logs.
+     * @notice Validates redeem and reverts on rejection.
      * @param cToken Asset being redeemed
      * @param redeemer The address redeeming the tokens
      * @param redeemAmount The amount of the underlying asset being redeemed
@@ -414,6 +494,7 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
      * @return 0 if the borrow is allowed, otherwise a semi-opaque error code (See ErrorReporter.sol)
      */
     function borrowAllowed(address cToken, address borrower, uint borrowAmount) external override returns (uint) {
+
         if (!markets[cToken].isListed) {
             return uint(Error.MARKET_NOT_LISTED);
         }
@@ -423,6 +504,9 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         if (!markets[cToken].accountMembership[borrower]) {
             return uint(Error.MARKET_NOT_ENTERED);
         }
+
+        // Require borrower enabled collateral
+        require(vestingContractInfo[accountToVesting[borrower]].enabledAsCollateral, "Not enabled as collateral");
 
         if (oracle.getUnderlyingPrice(CToken(cToken)) == 0) {
             return uint(Error.PRICE_ERROR);
@@ -440,20 +524,20 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
     }
 
     /**
-     * @notice Validates borrow and reverts on rejection. May emit logs.
+     * @notice Validates borrow and reverts on rejection.
      * @param cToken Asset whose underlying is being borrowed
      * @param borrower The address borrowing the underlying
      * @param borrowAmount The amount of the underlying asset requested to borrow
      */
-    function borrowVerify(address cToken, address borrower, uint borrowAmount) external override {
-        cToken;         // currently unused
-        borrower;       // currently unused
-        borrowAmount;   // currently unused
+    // function borrowVerify(address cToken, address borrower, uint borrowAmount) external override {
+    //     cToken;         // currently unused
+    //     borrower;       // currently unused
+    //     borrowAmount;   // currently unused
 
-        if (false) {
-            maxAssets = maxAssets; // not pure
-        }
-    }
+    //     if (false) {
+    //         maxAssets = maxAssets; // not pure
+    //     }
+    // }
 
     /**
      * @notice Checks if the account should be allowed to repay a borrow in the given market
@@ -482,40 +566,40 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
     }
 
     /**
-     * @notice Validates repayBorrow and reverts on rejection. May emit logs.
+     * @notice Validates repayBorrow and reverts on rejection.
      * @param cToken Asset being repaid
      * @param payer The address repaying the borrow
      * @param borrower The address of the borrower
      * @param repayAmount The amount of underlying being repaid
      */
-    function repayBorrowVerify(
-        address cToken,
-        address payer,
-        address borrower,
-        uint repayAmount,
-        uint borrowerIndex) external override {
-        cToken;        // currently unused
-        payer;         // currently unused
-        borrower;      // currently unused
-        repayAmount;   // currently unused
-        borrowerIndex; // currently unused
+    // function repayBorrowVerify(
+    //     address cToken,
+    //     address payer,
+    //     address borrower,
+    //     uint repayAmount,
+    //     uint borrowerIndex) external override {
+    //     cToken;        // currently unused
+    //     payer;         // currently unused
+    //     borrower;      // currently unused
+    //     repayAmount;   // currently unused
+    //     borrowerIndex; // currently unused
 
-        if (false) {
-            maxAssets = maxAssets; // not pure
-        }
-    }
+    //     if (false) {
+    //         maxAssets = maxAssets; // not pure
+    //     }
+    // }
 
     /**
      * @notice Checks if the liquidation should be allowed to occur
      * @param cTokenBorrowed Asset which was borrowed by the borrower
-     * @param cTokenCollateral Asset which was used as collateral and will be seized
+     * @param vestingContract Asset which was used as collateral and will be seized
      * @param liquidator The address repaying the borrow and seizing the collateral
      * @param borrower The address of the borrower
      * @param repayAmount The amount of underlying being repaid
      */
     function liquidateBorrowAllowed(
         address cTokenBorrowed,
-        address cTokenCollateral,
+        IVesting vestingContract,
         address liquidator,
         address borrower,
         uint repayAmount) external override returns (uint) {
@@ -523,10 +607,9 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         borrower;     // currently unused
         repayAmount;  // currently unused
 
-        if (!markets[cTokenBorrowed].isListed || !markets[cTokenCollateral].isListed) {
+        if (!markets[cTokenBorrowed].isListed || !vestingContractInfo[vestingContract].isListed) {
             return uint(Error.MARKET_NOT_LISTED);
         }
-
         // *may include Policy Hook-type checks
 
         /* The borrower must have shortfall in order to be liquidatable */
@@ -552,55 +635,55 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
     }
 
     /**
-     * @notice Validates liquidateBorrow and reverts on rejection. May emit logs.
+     * @notice Validates liquidateBorrow and reverts on rejection.
      * @param cTokenBorrowed Asset which was borrowed by the borrower
      * @param cTokenCollateral Asset which was used as collateral and will be seized
      * @param liquidator The address repaying the borrow and seizing the collateral
      * @param borrower The address of the borrower
      * @param repayAmount The amount of underlying being repaid
      */
-    function liquidateBorrowVerify(
-        address cTokenBorrowed,
-        address cTokenCollateral,
-        address liquidator,
-        address borrower,
-        uint repayAmount,
-        uint seizeTokens) external override {
-        cTokenBorrowed;   // currently unused
-        cTokenCollateral; // currently unused
-        liquidator;       // currently unused
-        borrower;         // currently unused
-        repayAmount;      // currently unused
-        seizeTokens;      // currently unused
+    // function liquidateBorrowVerify(
+    //     address cTokenBorrowed,
+    //     address cTokenCollateral,
+    //     address liquidator,
+    //     address borrower,
+    //     uint repayAmount,
+    //     uint seizeTokens) external override {
+    //     cTokenBorrowed;   // currently unused
+    //     cTokenCollateral; // currently unused
+    //     liquidator;       // currently unused
+    //     borrower;         // currently unused
+    //     repayAmount;      // currently unused
+    //     seizeTokens;      // currently unused
 
-        if (false) {
-            maxAssets = maxAssets; // not pure
-        }
-    }
+    //     if (false) {
+    //         maxAssets = maxAssets; // not pure
+    //     }
+    // }
 
     /**
      * @notice Checks if the seizing of assets should be allowed to occur
-     * @param cTokenCollateral Asset which was used as collateral and will be seized
+     * @param vestingContractWrapper Asset which was used as collateral and will be seized
      * @param cTokenBorrowed Asset which was borrowed by the borrower
      * @param liquidator The address repaying the borrow and seizing the collateral
      * @param borrower The address of the borrower
      * @param seizeTokens The number of collateral tokens to seize
      */
     function seizeAllowed(
-        address cTokenCollateral,
+        address vestingContractWrapper,
         address cTokenBorrowed,
         address liquidator,
         address borrower,
-        uint seizeTokens) external override returns (uint) {
+        uint seizeTokens) public override returns (uint) {
         liquidator;       // currently unused
         borrower;         // currently unused
         seizeTokens;      // currently unused
 
-        if (!markets[cTokenCollateral].isListed || !markets[cTokenBorrowed].isListed) {
+        if (!vestingContractInfo[accountToVesting[borrower]].isListed || !markets[cTokenBorrowed].isListed) {
             return uint(Error.MARKET_NOT_LISTED);
         }
 
-        if (CToken(cTokenCollateral).comptroller() != CToken(cTokenBorrowed).comptroller()) {
+        if (IVestingContractWrapper(vestingContractWrapper).comptroller() != CToken(cTokenBorrowed).comptroller()) {
             return uint(Error.COMPTROLLER_MISMATCH);
         }
 
@@ -610,29 +693,29 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
     }
 
     /**
-     * @notice Validates seize and reverts on rejection. May emit logs.
+     * @notice Validates seize and reverts on rejection.
      * @param cTokenCollateral Asset which was used as collateral and will be seized
      * @param cTokenBorrowed Asset which was borrowed by the borrower
      * @param liquidator The address repaying the borrow and seizing the collateral
      * @param borrower The address of the borrower
      * @param seizeTokens The number of collateral tokens to seize
      */
-    function seizeVerify(
-        address cTokenCollateral,
-        address cTokenBorrowed,
-        address liquidator,
-        address borrower,
-        uint seizeTokens) external override {
-        cTokenCollateral; // currently unused
-        cTokenBorrowed;   // currently unused
-        liquidator;       // currently unused
-        borrower;         // currently unused
-        seizeTokens;      // currently unused
+    // function seizeVerify(
+    //     address cTokenCollateral,
+    //     address cTokenBorrowed,
+    //     address liquidator,
+    //     address borrower,
+    //     uint seizeTokens) external override {
+    //     cTokenCollateral; // currently unused
+    //     cTokenBorrowed;   // currently unused
+    //     liquidator;       // currently unused
+    //     borrower;         // currently unused
+    //     seizeTokens;      // currently unused
 
-        if (false) {
-            maxAssets = maxAssets; // not pure
-        }
-    }
+    //     if (false) {
+    //         maxAssets = maxAssets; // not pure
+    //     }
+    // }
 
     /**
      * @notice Checks if the account should be allowed to transfer tokens in the given market
@@ -656,22 +739,22 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
     }
 
     /**
-     * @notice Validates transfer and reverts on rejection. May emit logs.
+     * @notice Validates transfer and reverts on rejection.
      * @param cToken Asset being transferred
      * @param src The account which sources the tokens
      * @param dst The account which receives the tokens
      * @param transferTokens The number of cTokens to transfer
      */
-    function transferVerify(address cToken, address src, address dst, uint transferTokens) external override {
-        cToken;         // currently unused
-        src;            // currently unused
-        dst;            // currently unused
-        transferTokens; // currently unused
+    // function transferVerify(address cToken, address src, address dst, uint transferTokens) external override {
+    //     cToken;         // currently unused
+    //     src;            // currently unused
+    //     dst;            // currently unused
+    //     transferTokens; // currently unused
 
-        if (false) {
-            maxAssets = maxAssets; // not pure
-        }
-    }
+    //     if (false) {
+    //         maxAssets = maxAssets; // not pure
+    //     }
+    // }
 
     /*** Liquidity/Liquidation Calculations ***/
 
@@ -685,16 +768,6 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
      */
 
     function vestingCalculateNPV(address owner) public override view returns (uint, uint256) {
-        // Find if owner has any listed contracts enabled as Collateral
-        
-        // Confirm there exists a mapping from owner to a vesting contract, otherwise owner did not register any contract
-        require(IVesting(accountToVesting[owner]).recipient() != address(0),"No vesting registered to owner");
-
-        // Require collateral is listed
-        require(vestingContractInfo[accountToVesting[owner]].isListed, "Must be listed");
-
-        // Require collateral is enabled already
-        require(vestingContractInfo[accountToVesting[owner]].enabledAsCollateral, "Must be enabled");
 
         IVestingContractWrapper _vestingWrapper = IVestingContractWrapper(vestingContractInfo[accountToVesting[owner]].vestingContractWrapper);
 
@@ -785,7 +858,12 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         (oErr, vars.collateralNPV)= vestingCalculateNPV(account);
         if (oErr != 0) {
             return (Error.MATH_ERROR, 0, 0);
-        }    
+        }
+
+        // Subtract amount owed to liquidators (in native token)
+        if (vestingContractInfo[accountToVesting[account]].amountOwedToLiquidator > 0) {
+            vars.collateralNPV = vars.collateralNPV.sub(vestingContractInfo[accountToVesting[account]].amountOwedToLiquidator);
+        }
 
         // get underlying price
         vars.oraclePriceMantissa = oracle.getPrice(vestingNPVConfig.underlyingAddress);
@@ -879,14 +957,13 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
      * @notice Calculate number of tokens of collateral asset to seize given an underlying amount
      * @dev Used in liquidation (called in cToken.liquidateBorrowFresh)
      * @param cTokenBorrowed The address of the borrowed cToken
-     * @param cTokenCollateral The address of the collateral cToken
      * @param repayAmount The amount of cTokenBorrowed underlying to convert into cTokenCollateral tokens
      * @return (errorCode, number of cTokenCollateral tokens to be seized in a liquidation)
      */
-    function liquidateCalculateSeizeTokens(address cTokenBorrowed, address cTokenCollateral, uint repayAmount) external override view returns (uint, uint) {
+    function liquidateCalculateSeizeTokens(address cTokenBorrowed, uint repayAmount) external override view returns (uint, uint) {
         /* Read oracle prices for borrowed and collateral markets */
         uint priceBorrowedMantissa = oracle.getUnderlyingPrice(CToken(cTokenBorrowed));
-        uint priceCollateralMantissa = oracle.getUnderlyingPrice(CToken(cTokenCollateral));
+        uint priceCollateralMantissa = oracle.getPrice(vestingNPVConfig.underlyingAddress);
         if (priceBorrowedMantissa == 0 || priceCollateralMantissa == 0) {
             return (uint(Error.PRICE_ERROR), 0);
         }
@@ -894,13 +971,11 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         /*
          * Get the exchange rate and calculate the number of collateral tokens to seize:
          *  seizeAmount = repayAmount * liquidationIncentive * priceBorrowed / priceCollateral
-         *  seizeTokens = seizeAmount / exchangeRate
-         *   = repayAmount * (liquidationIncentive * priceBorrowed) / (priceCollateral * exchangeRate)
+         *  seizeTokens = seizeAmount
+         *   = repayAmount * (liquidationIncentive * priceBorrowed) / priceCollateral
          */
-        uint exchangeRateMantissa = CToken(cTokenCollateral).exchangeRateStored(); // Note: reverts on error
         uint seizeTokens;
         Exp memory numerator;
-        Exp memory denominator;
         Exp memory ratio;
         MathError mathErr;
 
@@ -909,12 +984,7 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
             return (uint(Error.MATH_ERROR), 0);
         }
 
-        (mathErr, denominator) = mulExp(priceCollateralMantissa, exchangeRateMantissa);
-        if (mathErr != MathError.NO_ERROR) {
-            return (uint(Error.MATH_ERROR), 0);
-        }
-
-        (mathErr, ratio) = divExp(numerator, denominator);
+        (mathErr, ratio) = divExp(numerator, Exp({mantissa: priceCollateralMantissa}));
         if (mathErr != MathError.NO_ERROR) {
             return (uint(Error.MATH_ERROR), 0);
         }
@@ -942,7 +1012,7 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         }
 
         // Track the old oracle for the comptroller
-        PriceOracle oldOracle = oracle;
+        // PriceOracle oldOracle = oracle;
 
         // Ensure invoke newOracle.isPriceOracle() returns true
         // require(newOracle.isPriceOracle(), "oracle method isPriceOracle returned false");
@@ -951,7 +1021,7 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         oracle = newOracle;
 
         // Emit NewPriceOracle(oldOracle, newOracle)
-        emit NewPriceOracle(oldOracle, newOracle);
+        // emit NewPriceOracle(oldOracle, newOracle);
 
         return uint(Error.NO_ERROR);
     }
@@ -979,9 +1049,9 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
             return fail(Error.INVALID_CLOSE_FACTOR, FailureInfo.SET_CLOSE_FACTOR_VALIDATION);
         }
 
-        uint oldCloseFactorMantissa = closeFactorMantissa;
+        // uint oldCloseFactorMantissa = closeFactorMantissa;
         closeFactorMantissa = newCloseFactorMantissa;
-        emit NewCloseFactor(oldCloseFactorMantissa, closeFactorMantissa);
+        // emit NewCloseFactor(oldCloseFactorMantissa, closeFactorMantissa);
 
         return uint(Error.NO_ERROR);
     }
@@ -1019,11 +1089,11 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         }
 
         // Set market's collateral factor to new collateral factor, remember old value
-        uint oldCollateralFactorMantissa = market.collateralFactorMantissa;
+        // uint oldCollateralFactorMantissa = market.collateralFactorMantissa;
         market.collateralFactorMantissa = newCollateralFactorMantissa;
 
         // Emit event with asset, old collateral factor, and new collateral factor
-        emit NewCollateralFactor(cToken, oldCollateralFactorMantissa, newCollateralFactorMantissa);
+        // emit NewCollateralFactor(cToken, oldCollateralFactorMantissa, newCollateralFactorMantissa);
 
         return uint(Error.NO_ERROR);
     }
@@ -1040,9 +1110,9 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
             return fail(Error.UNAUTHORIZED, FailureInfo.SET_MAX_ASSETS_OWNER_CHECK);
         }
 
-        uint oldMaxAssets = maxAssets;
+        // uint oldMaxAssets = maxAssets;
         maxAssets = newMaxAssets;
-        emit NewMaxAssets(oldMaxAssets, newMaxAssets);
+        // emit NewMaxAssets(oldMaxAssets, newMaxAssets);
 
         return uint(Error.NO_ERROR);
     }
@@ -1072,13 +1142,13 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         }
 
         // Save current value for use in log
-        uint oldLiquidationIncentiveMantissa = liquidationIncentiveMantissa;
+        // uint oldLiquidationIncentiveMantissa = liquidationIncentiveMantissa;
 
         // Set liquidation incentive to new incentive
         liquidationIncentiveMantissa = newLiquidationIncentiveMantissa;
 
         // Emit event with old incentive, new incentive
-        emit NewLiquidationIncentive(oldLiquidationIncentiveMantissa, newLiquidationIncentiveMantissa);
+        // emit NewLiquidationIncentive(oldLiquidationIncentiveMantissa, newLiquidationIncentiveMantissa);
 
         return uint(Error.NO_ERROR);
     }
@@ -1101,7 +1171,7 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         cToken.isCToken(); // Sanity check to make sure its really a CToken
 
         markets[address(cToken)] = Market({isListed: true, collateralFactorMantissa: 0});
-        emit MarketListed(cToken);
+        // emit MarketListed(cToken);
 
         return uint(Error.NO_ERROR);
     }
@@ -1137,7 +1207,9 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         vestingContractInfo[_vestingContract] = VestingContractInfo({
             isListed: true,
             enabledAsCollateral: false,
-            vestingContractWrapper: address(vestingContractWrapper)
+            vestingContractWrapper: address(vestingContractWrapper),
+            unvestedTokenLiquidator: address(0),
+            amountOwedToLiquidator: 0
         });
 
         return uint(Error.NO_ERROR);

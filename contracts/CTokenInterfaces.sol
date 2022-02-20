@@ -5,6 +5,7 @@ pragma solidity 0.6.10;
 import "./ComptrollerInterface.sol";
 import "./InterestRateModel.sol";
 import "./EIP20NonStandardInterface.sol";
+import "./interfaces/IVesting.sol";
 
 contract CTokenStorage {
     // Guard variable for re-entrancy checks
@@ -217,7 +218,7 @@ abstract contract CErc20Interface is CErc20Storage {
     function borrow(uint borrowAmount) external virtual returns (uint);
     function repayBorrow(uint repayAmount) external virtual returns (uint);
     function repayBorrowBehalf(address borrower, uint repayAmount) external virtual returns (uint);
-    function liquidateBorrow(address borrower, uint repayAmount, CTokenInterface cTokenCollateral) external virtual returns (uint);
+    function liquidateBorrow(address borrower, uint repayAmount, IVesting vestingContract) external virtual returns (uint);
     function sweepToken(EIP20NonStandardInterface token) external virtual;
 
 

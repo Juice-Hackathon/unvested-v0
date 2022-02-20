@@ -14,7 +14,7 @@ module.exports = async function ({ ethers: { getNamedSigner }, getNamedAccounts,
       ether(1000000000),
       "Yearn Finance",
       "YFI",
-      6,
+      18,
     ],
     log: true,
     deterministicDeployment: false

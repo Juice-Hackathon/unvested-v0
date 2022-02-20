@@ -6,7 +6,7 @@ import {ether} from "../utils/common/unitsUtils";
 async function main() {
 
   const { execute, read } = deployments;
-  const {deployer, lender, borrower1, borrower2} = await getNamedAccounts();
+  const {deployer, lender, borrower1, borrower2, liquidator} = await getNamedAccounts();
 
   const comptroller = await deployments.get("Comptroller");
   const yfi = await deployments.get("YearnMockToken");
@@ -21,32 +21,11 @@ async function main() {
   // Enters markets
   await execute("Comptroller", {from: borrower1, log: true}, "enterMarkets", [jUSDC.address]);
 
-  // Calculating NPV and liquidity prior
-  const vestingCalculateNPVPrevious = await read("Comptroller", {},"vestingCalculateNPV", borrower1);
-
-  if (!vestingCalculateNPVPrevious[0].isZero()) {
-    console.log('error calculating NPV - ' + vestingCalculateNPVPrevious[0].toString());
-  } else {
-    const calculatedNPVPrevious = vestingCalculateNPVPrevious[1].toString();
-    console.log('Pre Borrow Calculated NPV (Raw): ' + calculatedNPVPrevious);
-  }
-
-  // Getting accountLiquidity
-  const accountLiquidityPrevious = await read("Comptroller", {},"getAccountLiquidity", borrower1);
-
-  if (!accountLiquidityPrevious[0].isZero()) {
-    console.log('error calculating NPV - ' + accountLiquidityPrevious[0].toString());
-  } else {
-    const calculatedLiquidity = accountLiquidityPrevious[1].toString();
-    const calculatedShortfall = accountLiquidityPrevious[2].toString();
-    console.log('Pre Borrow Calculated Liquidity (Raw): ' + calculatedLiquidity + '  Shortfall: ' + calculatedShortfall);
-  }
-
   const balancePrevious = await read("CErc20", {}, "balanceOf", borrower1);
   const totalSupply = await read("CErc20", {}, "totalSupply");
 
-  // Borrow $1M USDC
-  await execute("CErc20", {from: borrower1, log: true}, "borrow", '1000000000000');
+  // Borrow $3M USDC
+  await execute("CErc20", {from: borrower1, log: true}, "borrow", '3000000000000');
 
   // Get USDC balance post
   const balancePost = await read("StandardTokenMock", {}, "balanceOf", borrower1);
@@ -74,7 +53,7 @@ async function main() {
   }
 
   // Trigger shortfall
-  await execute("SimplePriceOracle", {from: deployer, log: true}, "setDirectPrice", yfi.address, ether(2000));
+  await execute("SimplePriceOracle", {from: deployer, log: true}, "setDirectPrice", yfi.address, ether(5000));
   console.log("Updated oracle price to: $2000");
   
   // Getting accountLiquidity with shortfall
@@ -88,19 +67,36 @@ async function main() {
     console.log('Post Oracle Update Calculated Liquidity (Raw): ' + calculatedLiquidity + '  Shortfall: ' + calculatedShortfall);
   }
 
-  // Test unregister. Should fail
-  try {
-    await execute("Comptroller", {from: borrower1, log: true}, "withdrawVestingContract", vestingOne.address);
-  } catch(e) {
-    console.log("EXPECTED TO FAIL WITH ERROR: ", e);
+  // Liquidate unvested
+  const vestingContractBalancePrevious = await read("YearnMockToken", {}, "balanceOf", vestingOne.address);
+  const liquidatorBalancePrevious = await read("YearnMockToken", {}, "balanceOf", deployer);
+  await execute("StandardTokenMock", {from: deployer, log: true}, "approve", jUSDC.address, '1000000000000000000');
+  await execute("CErc20", {from: deployer, log: true}, "liquidateBorrow", borrower1, '1500000000000', vestingOne.address); // Repay $1.5M
+  const vestingContractBalancePost = await read("YearnMockToken", {}, "balanceOf", vestingOne.address);
+  const liquidatorBalancePost = await read("YearnMockToken", {}, "balanceOf", deployer);
+  console.log("Previous Vesting Contract Balance: ", vestingContractBalancePrevious.toString());
+  console.log("Current Vesting Contract Balance: ", vestingContractBalancePost.toString());
+  console.log("Amount of YFI transferred to liquidator: ", liquidatorBalancePost.sub(liquidatorBalancePrevious).toString());
+  // Get liquidator is owed
+  const owedLiquidatedInfo = await read("Comptroller", {},"vestingContractInfo", vestingOne.address);
+  console.log("Liquidator is owed: ", owedLiquidatedInfo[4].toString());
+
+  // Getting accountLiquidity after liquidation
+  const accountLiquidityLiquidations = await read("Comptroller", {},"getAccountLiquidity", borrower1);
+
+  if (!accountLiquidityLiquidations[0].isZero()) {
+    console.log('error calculating NPV - ' + accountLiquidityLiquidations[0].toString());
+  } else {
+    const calculatedLiquidity = accountLiquidityLiquidations[1].toString();
+    const calculatedShortfall = accountLiquidityLiquidations[2].toString();
+    console.log('Post Repay Update Calculated Liquidity (Raw): ' + calculatedLiquidity + '  Shortfall: ' + calculatedShortfall);
   }
 
   // Set oracle back to 10k and repay debt
   await execute("SimplePriceOracle", {from: deployer, log: true}, "setDirectPrice", yfi.address, ether(10000));
-  await execute("StandardTokenMock", {from: borrower1, log: true}, "approve", jUSDC.address, '1000000000000000000');
   await execute("CErc20", {from: deployer, log: true}, "repayBorrowBehalf", borrower1, constants.MaxUint256); // repay all debt FROM deployer on behalf of borrower
 
-  // Getting accountLiquidity with shortfall
+  // Getting accountLiquidity after repay
   const accountLiquidityAfterRepay = await read("Comptroller", {},"getAccountLiquidity", borrower1);
 
   if (!accountLiquidityAfterRepay[0].isZero()) {
@@ -111,11 +107,25 @@ async function main() {
     console.log('Post Repay Update Calculated Liquidity (Raw): ' + calculatedLiquidity + '  Shortfall: ' + calculatedShortfall);
   }
 
-  // Withdraw Vesting contract
-  await execute("Comptroller", {from: borrower1, log: true}, "withdrawVestingContract", vestingOne.address);
+  // Claim rewards by liquidator and read rewards, even if price changes liquidator is owed the same amount stored in state
+  const vestingContractBalancePreviousClaim = await read("YearnMockToken", {}, "balanceOf", vestingOne.address);
+  const liquidatorBalancePreviousClaim = await read("YearnMockToken", {}, "balanceOf", deployer);
+  await execute("Comptroller", {from: deployer, log: true}, "liquidatorClaimOwedTokens", vestingOne.address);
+  const vestingContractBalancePostClaim = await read("YearnMockToken", {}, "balanceOf", vestingOne.address);
+  const liquidatorBalancePostClaim = await read("YearnMockToken", {}, "balanceOf", deployer);
+  console.log("Previous Vesting Contract Balance (Pre claim): ", vestingContractBalancePreviousClaim.toString());
+  console.log("Current Vesting Contract Balance (Post claim): ", vestingContractBalancePostClaim.toString());
+  console.log("Amount of YFI transferred to liquidator (Post claim): ", liquidatorBalancePostClaim.sub(liquidatorBalancePreviousClaim).toString());
+  // Get liquidator is owed
+  const owedLiquidatedInfoPostClaim = await read("Comptroller", {},"vestingContractInfo", vestingOne.address);
+  console.log("Liquidator is owed (Post claim): ", owedLiquidatedInfoPostClaim[4].toString());
 
-  const owner = await read("Vesting", {},"recipient");
-  console.log("Old recipient (Comptroller): ", comptroller.address, " New recipient: ", owner);
+  // Withdraw Vesting contract. Expect it to FAIL
+  try {
+    await execute("Comptroller", {from: borrower1, log: true}, "withdrawVestingContract", vestingOne.address);
+  } catch(e) {
+    console.log("EXPECTED TO FAIL WITH ERROR: ", e);
+  }
 }
 
 main()
