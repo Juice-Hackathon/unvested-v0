@@ -6,7 +6,7 @@ import {ether} from "../utils/common/unitsUtils";
 async function main() {
 
   const { execute, read } = deployments;
-  const {deployer, borrower1, borrower2, liquidator} = await getNamedAccounts();
+  const {deployer, lender, borrower1, borrower2, liquidator} = await getNamedAccounts();
 
   const comptroller = await deployments.get("Comptroller");
   const yfi = await deployments.get("YearnMockToken");

@@ -1,35 +1,20 @@
 import { ethers, getNamedAccounts, deployments} from "hardhat";
 import { BigNumber, constants } from "ethers";
 import { executionAsyncResource } from "async_hooks";
-import {ether} from "../utils/common/unitsUtils"; 
+import {ether} from "../../utils/common/unitsUtils"; 
 
 async function main() {
 
   const { execute, read } = deployments;
-  const {deployer, borrower1, borrower2, liquidator} = await getNamedAccounts();
+  const {deployer, lender, borrower1, borrower2, liquidator} = await getNamedAccounts();
 
   const comptroller = await deployments.get("Comptroller");
-  const yfi = await deployments.get("YearnMockToken");
+  const chainlink = await deployments.get("YearnMockToken");
   const vestingOne = await deployments.get("Vesting");
   const vestingTwo = await deployments.get("VestingUserTwo");
   const jUSDC = await deployments.get("CErc20");
 
-  // Trigger shortfall
-  await execute("SimplePriceOracle", {from: deployer, log: true}, "setDirectPrice", yfi.address, ether(3));
-  console.log("Updated oracle price to: $2000");
-  
-  // Getting accountLiquidity with shortfall
-  const accountLiquidityShortFall = await read("Comptroller", {},"getAccountLiquidity", borrower1);
-
-  if (!accountLiquidityShortFall[0].isZero()) {
-    console.log('error calculating NPV - ' + accountLiquidityShortFall[0].toString());
-  } else {
-    const calculatedLiquidity = accountLiquidityShortFall[1].toString();
-    const calculatedShortfall = accountLiquidityShortFall[2].toString();
-    console.log('Post Oracle Update Calculated Liquidity (Raw): ' + calculatedLiquidity + '  Shortfall: ' + calculatedShortfall);
-  }
-
-  // Liquidate
+  // Liquidate borrower 1
   const vestingContractBalancePrevious = await read("YearnMockToken", {}, "balanceOf", vestingOne.address);
   const liquidatorBalancePrevious = await read("YearnMockToken", {}, "balanceOf", deployer);
   await execute("StandardTokenMock", {from: deployer, log: true}, "approve", jUSDC.address, '1000000000000000000');
@@ -38,7 +23,7 @@ async function main() {
   const liquidatorBalancePost = await read("YearnMockToken", {}, "balanceOf", deployer);
   console.log("Previous Vesting Contract Balance: ", vestingContractBalancePrevious.toString());
   console.log("Current Vesting Contract Balance: ", vestingContractBalancePost.toString());
-  console.log("Amount of YFI transferred to liquidator: ", liquidatorBalancePost.sub(liquidatorBalancePrevious).toString());
+  console.log("Amount of LINK transferred to liquidator: ", liquidatorBalancePost.sub(liquidatorBalancePrevious).toString());
 
   // Getting accountLiquidity after liquidation
   const accountLiquidityLiquidations = await read("Comptroller", {},"getAccountLiquidity", borrower1);
@@ -52,7 +37,7 @@ async function main() {
   }
 
   // Set oracle back to 10k
-  // await execute("SimplePriceOracle", {from: deployer, log: true}, "setDirectPrice", yfi.address, ether(10));
+  // await execute("SimplePriceOracle", {from: deployer, log: true}, "setDirectPrice", chainlink.address, ether(10));
 }
 
 main()
