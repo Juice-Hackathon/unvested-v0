@@ -46,3 +46,13 @@ Deployed to Kovan, Arbitrum Rinkeby, Harmony testnet, Aurora testnet.
 - InterestRateModel: 0xeBAe4bB9bD4774E143543Ad3c8A2c5e847308b83
 - StandardVestingContract - Borrower 1: 0xbB88e09385097878171346a59E709e24b53c4f71
 - StandardVestingContract - Borrower 2: 0x6C0933DB8C384CAc65dabfD0698368B017A4A1e9
+
+## METIS Testnet
+- jUSDC: 0x05b2880220D0f8C4d255856259A439A5F5D5fad6
+- USDC: 0x8050676c6ca7ecC8Fef4e383DF7bF804BeF915D6
+- LINK: 0xD9C60E01F98232a9f48d2fD0bEe8271b90bA738d
+- PriceOracle: 0x400aF5d37438c0beB9Ae69b05919599b1E2fb556
+- LendingController: 0x400aF5d37438c0beB9Ae69b05919599b1E2fb556
+- InterestRateModel: 0xeBAe4bB9bD4774E143543Ad3c8A2c5e847308b83
+- StandardVestingContract - Borrower 1: 0xd516EA3cb011d5aCCDAa40F81bb41f975b7a0730
+- StandardVestingContract - Borrower 2: 0xbca55732A62b761Bf4BEa86c1024F7bDED9A3030

@@ -46,6 +46,8 @@
     "harmony-testnet:export": "hardhat --network harmony-testnet export --export exports/harmony-testnet.json",
     "aurora-testnet:deploy": "hardhat --network aurora-testnet deploy",
     "aurora-testnet:export": "hardhat --network aurora-testnet export --export exports/aurora-testnet.json",
+    "metis-testnet:deploy": "hardhat --network metis-testnet deploy",
+    "metis-testnet:export": "hardhat --network metis-testnet export --export exports/metis-testnet.json",
     "export": "hardhat export --export-all exports/deployments.json",
     "test": "hardhat test --verbose",
     "test:coverage": "cross-env NODE_OPTIONS=\"--max-old-space-size=2048\" hardhat coverage",

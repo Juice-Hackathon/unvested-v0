@@ -20,8 +20,8 @@ module.exports = async function ({ ethers: { getNamedSigner }, getNamedAccounts,
   });
 
   // Transfer extra 1000 USDC to borrowers
-  await execute('StandardTokenMock',{from: deployer, log: true}, 'transfer', borrower1, '1000000000');
-  await execute('StandardTokenMock',{from: deployer, log: true}, 'transfer', borrower2, '1000000000');
+  // await execute('StandardTokenMock',{from: deployer, log: true}, 'transfer', borrower1, '1000000000');
+  // await execute('StandardTokenMock',{from: deployer, log: true}, 'transfer', borrower2, '1000000000');
 
   console.log('USDC deployed');
 }
