@@ -135,7 +135,7 @@ const config: HardhatUserConfig = {
       gasPrice: 5000000000,
       gasMultiplier: 2,
     },*/
-    /*kovan: {
+    kovan: {
      url: `https://kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,
      accounts: [`0x${process.env.KOVAN_DEPLOY_PRIVATE_KEY}`],
      chainId: 42,
@@ -144,7 +144,7 @@ const config: HardhatUserConfig = {
      tags: ["staging"],
      gasPrice: 20000000000,
      gasMultiplier: 2,
-    },*/
+    },
     /*
     matic: {
       url: "https://rpc-mainnet.maticvigil.com",
@@ -177,16 +177,16 @@ const config: HardhatUserConfig = {
       live: true,
       saveDeployments: true,
       blockGasLimit: 700000,
-    },
+    },*/
     "arbitrum-testnet": {
-      url: "https://kovan3.arbitrum.io/rpc",
-      accounts,
-      chainId: 79377087078960,
+      url: "https://rinkeby.arbitrum.io/rpc",
+      accounts: [`0x${process.env.KOVAN_DEPLOY_PRIVATE_KEY}`],
+      chainId: 421611,
       live: true,
       saveDeployments: true,
       tags: ["staging"],
       gasMultiplier: 2,
-    },*/
+    },
   },
   paths: {
     artifacts: "artifacts",

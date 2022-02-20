@@ -6,10 +6,10 @@ import {ether} from "../utils/common/unitsUtils";
 async function main() {
 
   const { execute, read } = deployments;
-  const {deployer, lender, borrower1, borrower2} = await getNamedAccounts();
+  const {deployer, borrower1, borrower2} = await getNamedAccounts();
 
   const comptroller = await deployments.get("Comptroller");
-  const yfi = await deployments.get("YearnMockToken");
+  const chainlink = await deployments.get("YearnMockToken");
   const vestingOne = await deployments.get("Vesting");
   const vestingTwo = await deployments.get("VestingUserTwo");
   const jUSDC = await deployments.get("CErc20");
@@ -74,7 +74,7 @@ async function main() {
   }
 
   // Trigger shortfall
-  await execute("SimplePriceOracle", {from: deployer, log: true}, "setDirectPrice", yfi.address, ether(2000));
+  await execute("SimplePriceOracle", {from: deployer, log: true}, "setDirectPrice", chainlink.address, ether(3));
   console.log("Updated oracle price to: $2000");
   
   // Getting accountLiquidity with shortfall
@@ -96,7 +96,7 @@ async function main() {
   }
 
   // Set oracle back to 10k and repay debt
-  await execute("SimplePriceOracle", {from: deployer, log: true}, "setDirectPrice", yfi.address, ether(10000));
+  await execute("SimplePriceOracle", {from: deployer, log: true}, "setDirectPrice", chainlink.address, ether(10));
   await execute("StandardTokenMock", {from: borrower1, log: true}, "approve", jUSDC.address, '1000000000000000000');
   await execute("CErc20", {from: deployer, log: true}, "repayBorrowBehalf", borrower1, constants.MaxUint256); // repay all debt FROM deployer on behalf of borrower
 
