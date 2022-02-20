@@ -39,9 +39,6 @@ async function main() {
     const calculatedShortfall = accountLiquidityShortFallTwo[2].toString();
     console.log('Post Oracle Update Calculated Liquidity Borrower 2 (Raw): ' + calculatedLiquidity + '  Shortfall: ' + calculatedShortfall);
   }
-
-  await execute('ChainlinkPriceOracle',{from: deployer, log: true}, 'setChainlinkAggregator',  chainlink.address, linkTokenPrice[Number(chainId)]);
-    await execute('ChainlinkPriceOracle',{from: deployer, log: true}, 'setDirectPrice', chainlink.address, ether(10));
 }
 
 main()
