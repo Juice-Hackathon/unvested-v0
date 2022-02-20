@@ -24,8 +24,8 @@ async function main() {
   const balancePrevious = await read("CErc20", {}, "balanceOf", borrower1);
   const totalSupply = await read("CErc20", {}, "totalSupply");
 
-  // Borrow $1M USDC
-  await execute("CErc20", {from: borrower1, log: true}, "borrow", '1000000000000');
+  // Borrow $3M USDC
+  await execute("CErc20", {from: borrower1, log: true}, "borrow", '3000000000000');
 
   // Get USDC balance post
   const balancePost = await read("StandardTokenMock", {}, "balanceOf", borrower1);
@@ -53,7 +53,7 @@ async function main() {
   }
 
   // Trigger shortfall
-  await execute("SimplePriceOracle", {from: deployer, log: true}, "setDirectPrice", yfi.address, ether(3000));
+  await execute("SimplePriceOracle", {from: deployer, log: true}, "setDirectPrice", yfi.address, ether(5000));
   console.log("Updated oracle price to: $2000");
   
   // Getting accountLiquidity with shortfall
@@ -67,16 +67,19 @@ async function main() {
     console.log('Post Oracle Update Calculated Liquidity (Raw): ' + calculatedLiquidity + '  Shortfall: ' + calculatedShortfall);
   }
 
-  // Liquidate
+  // Liquidate unvested
   const vestingContractBalancePrevious = await read("YearnMockToken", {}, "balanceOf", vestingOne.address);
   const liquidatorBalancePrevious = await read("YearnMockToken", {}, "balanceOf", deployer);
   await execute("StandardTokenMock", {from: deployer, log: true}, "approve", jUSDC.address, '1000000000000000000');
-  await execute("CErc20", {from: deployer, log: true}, "liquidateBorrow", borrower1, '100000000', vestingOne.address); // Repay $100
+  await execute("CErc20", {from: deployer, log: true}, "liquidateBorrow", borrower1, '1500000000000', vestingOne.address); // Repay $1.5M
   const vestingContractBalancePost = await read("YearnMockToken", {}, "balanceOf", vestingOne.address);
   const liquidatorBalancePost = await read("YearnMockToken", {}, "balanceOf", deployer);
   console.log("Previous Vesting Contract Balance: ", vestingContractBalancePrevious.toString());
   console.log("Current Vesting Contract Balance: ", vestingContractBalancePost.toString());
   console.log("Amount of YFI transferred to liquidator: ", liquidatorBalancePost.sub(liquidatorBalancePrevious).toString());
+  // Get liquidator is owed
+  const owedLiquidatedInfo = await read("Comptroller", {},"vestingContractInfo", vestingOne.address);
+  console.log("Liquidator is owed: ", owedLiquidatedInfo[4].toString());
 
   // Getting accountLiquidity after liquidation
   const accountLiquidityLiquidations = await read("Comptroller", {},"getAccountLiquidity", borrower1);
@@ -104,11 +107,25 @@ async function main() {
     console.log('Post Repay Update Calculated Liquidity (Raw): ' + calculatedLiquidity + '  Shortfall: ' + calculatedShortfall);
   }
 
-  // Withdraw Vesting contract
-  await execute("Comptroller", {from: borrower1, log: true}, "withdrawVestingContract", vestingOne.address);
+  // Claim rewards by liquidator and read rewards, even if price changes liquidator is owed the same amount stored in state
+  const vestingContractBalancePreviousClaim = await read("YearnMockToken", {}, "balanceOf", vestingOne.address);
+  const liquidatorBalancePreviousClaim = await read("YearnMockToken", {}, "balanceOf", deployer);
+  await execute("Comptroller", {from: deployer, log: true}, "liquidatorClaimOwedTokens", vestingOne.address);
+  const vestingContractBalancePostClaim = await read("YearnMockToken", {}, "balanceOf", vestingOne.address);
+  const liquidatorBalancePostClaim = await read("YearnMockToken", {}, "balanceOf", deployer);
+  console.log("Previous Vesting Contract Balance (Pre claim): ", vestingContractBalancePreviousClaim.toString());
+  console.log("Current Vesting Contract Balance (Post claim): ", vestingContractBalancePostClaim.toString());
+  console.log("Amount of YFI transferred to liquidator (Post claim): ", liquidatorBalancePostClaim.sub(liquidatorBalancePreviousClaim).toString());
+  // Get liquidator is owed
+  const owedLiquidatedInfoPostClaim = await read("Comptroller", {},"vestingContractInfo", vestingOne.address);
+  console.log("Liquidator is owed (Post claim): ", owedLiquidatedInfoPostClaim[4].toString());
 
-  const owner = await read("Vesting", {},"recipient");
-  console.log("Old recipient (Comptroller): ", comptroller.address, " New recipient: ", owner);
+  // Withdraw Vesting contract. Expect it to FAIL
+  try {
+    await execute("Comptroller", {from: borrower1, log: true}, "withdrawVestingContract", vestingOne.address);
+  } catch(e) {
+    console.log("EXPECTED TO FAIL WITH ERROR: ", e);
+  }
 }
 
 main()

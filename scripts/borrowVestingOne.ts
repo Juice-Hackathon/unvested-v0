@@ -43,7 +43,7 @@ async function main() {
   }
 
   const balancePrevious = await read("CErc20", {}, "balanceOf", borrower1);
-  const totalSupply = await read("StandardTokenMock", {}, "totalSupply");
+  const totalSupply = await read("CErc20", {}, "totalSupply");
 
   // Borrow $1M USDC
   await execute("CErc20", {from: borrower1, log: true}, "borrow", '1000000000000');
