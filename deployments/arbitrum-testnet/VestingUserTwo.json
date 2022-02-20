@@ -1,0 +1,259 @@
+{
+  "address": "0x6C0933DB8C384CAc65dabfD0698368B017A4A1e9",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "vestingToken_",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "recipient_",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "vestingAmount_",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "vestingBegin_",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "vestingCliff_",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "vestingEnd_",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "claim",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "lastUpdate",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "recipient",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "recipient_",
+          "type": "address"
+        }
+      ],
+      "name": "setRecipient",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "vestingAmount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "vestingBegin",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "vestingCliff",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "vestingEnd",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "vestingToken",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xd4e70ec5950b3ad42a1cfa3b23162e0fcc038a03c38c760583ddeffa2f93f888",
+  "receipt": {
+    "to": null,
+    "from": "0x3652588636C9D85125Fa264f794a63E3af188E03",
+    "contractAddress": "0x6C0933DB8C384CAc65dabfD0698368B017A4A1e9",
+    "transactionIndex": 0,
+    "gasUsed": "6871969",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x4129049ef71085dee318353b3a79ad48d28929c1fa2c335a7127440c5425e493",
+    "transactionHash": "0xd4e70ec5950b3ad42a1cfa3b23162e0fcc038a03c38c760583ddeffa2f93f888",
+    "logs": [],
+    "blockNumber": 9652242,
+    "cumulativeGasUsed": "2848349",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0x6715713831724679e0fEd5B63Fa4CDe8f73D2d76",
+    "0x3652588636C9D85125Fa264f794a63E3af188E03",
+    "100000000000000000000000",
+    1644937095,
+    1644937095,
+    1708009095
+  ],
+  "numDeployments": 1,
+  "solcInputHash": "88cefdbe38f6d60e0709c0b50ece8cc3",
+  "metadata": "{\"compiler\":{\"version\":\"0.6.10+commit.00c0fcaf\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"vestingToken_\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipient_\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"vestingAmount_\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"vestingBegin_\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"vestingCliff_\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"vestingEnd_\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"claim\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"lastUpdate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"recipient\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient_\",\"type\":\"address\"}],\"name\":\"setRecipient\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"vestingAmount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"vestingBegin\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"vestingCliff\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"vestingEnd\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"vestingToken\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/Vesting.sol\":\"VestingUserTwo\"},\"evmVersion\":\"istanbul\",\"libraries\":{\"__CACHE_BREAKER__\":\"0x00000000d41867734bbee4c6863d9255b2b06ac1\"},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/EIP20Interface.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity 0.6.10;\\n\\n/**\\n * @title ERC 20 Token Standard Interface\\n *  https://eips.ethereum.org/EIPS/eip-20\\n */\\ninterface EIP20Interface {\\n    function name() external view returns (string memory);\\n    function symbol() external view returns (string memory);\\n    function decimals() external view returns (uint8);\\n\\n    /**\\n      * @notice Get the total number of tokens in circulation\\n      * @return uint256\\n      */\\n    function totalSupply() external view returns (uint256);\\n\\n    /**\\n     * @notice Gets the balance of the specified address\\n     * @param owner The address from which the balance will be retrieved\\n     * @return balance\\n     */\\n    function balanceOf(address owner) external view returns (uint256 balance);\\n\\n    /**\\n      * @notice Transfer `amount` tokens from `msg.sender` to `dst`\\n      * @param dst The address of the destination account\\n      * @param amount The number of tokens to transfer\\n      * @return success\\n      */\\n    function transfer(address dst, uint256 amount) external returns (bool success);\\n\\n    /**\\n      * @notice Transfer `amount` tokens from `src` to `dst`\\n      * @param src The address of the source account\\n      * @param dst The address of the destination account\\n      * @param amount The number of tokens to transfer\\n      * @return success\\n      */\\n    function transferFrom(address src, address dst, uint256 amount) external returns (bool success);\\n\\n    /**\\n      * @notice Approve `spender` to transfer up to `amount` from `src`\\n      * @dev This will overwrite the approval amount for `spender`\\n      *  and is subject to issues noted [here](https://eips.ethereum.org/EIPS/eip-20#approve)\\n      * @param spender The address of the account which may transfer tokens\\n      * @param amount The number of tokens that are approved (-1 means infinite)\\n      * @return success\\n      */\\n    function approve(address spender, uint256 amount) external returns (bool success);\\n\\n    /**\\n      * @notice Get the current allowance from `owner` for `spender`\\n      * @param owner The address of the account which owns the tokens to be spent\\n      * @param spender The address of the account which may transfer tokens\\n      * @return remaining\\n      */\\n    function allowance(address owner, address spender) external view returns (uint256 remaining);\\n\\n    event Transfer(address indexed from, address indexed to, uint256 amount);\\n    event Approval(address indexed owner, address indexed spender, uint256 amount);\\n}\",\"keccak256\":\"0x3ad3c03c234c4505e5520476b54d7973fcf2b98bcd45a20796a120682871284e\",\"license\":\"MIT\"},\"contracts/SafeMath.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity 0.6.10;\\n\\n// From https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/math/Math.sol\\n// Subject to the MIT license.\\n\\n/**\\n * @dev Wrappers over Solidity's arithmetic operations with added overflow\\n * checks.\\n *\\n * Arithmetic operations in Solidity wrap on overflow. This can easily result\\n * in bugs, because programmers usually assume that an overflow raises an\\n * error, which is the standard behavior in high level programming languages.\\n * `SafeMath` restores this intuition by reverting the transaction when an\\n * operation overflows.\\n *\\n * Using this library instead of the unchecked operations eliminates an entire\\n * class of bugs, so it's recommended to use it always.\\n */\\nlibrary SafeMath {\\n    /**\\n     * @dev Returns the addition of two unsigned integers, reverting on overflow.\\n     *\\n     * Counterpart to Solidity's `+` operator.\\n     *\\n     * Requirements:\\n     * - Addition cannot overflow.\\n     */\\n    function add(uint256 a, uint256 b) internal pure returns (uint256) {\\n        uint256 c = a + b;\\n        require(c >= a, \\\"SafeMath: addition overflow\\\");\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the addition of two unsigned integers, reverting with custom message on overflow.\\n     *\\n     * Counterpart to Solidity's `+` operator.\\n     *\\n     * Requirements:\\n     * - Addition cannot overflow.\\n     */\\n    function add(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {\\n        uint256 c = a + b;\\n        require(c >= a, errorMessage);\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the subtraction of two unsigned integers, reverting on underflow (when the result is negative).\\n     *\\n     * Counterpart to Solidity's `-` operator.\\n     *\\n     * Requirements:\\n     * - Subtraction cannot underflow.\\n     */\\n    function sub(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return sub(a, b, \\\"SafeMath: subtraction underflow\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the subtraction of two unsigned integers, reverting with custom message on underflow (when the result is negative).\\n     *\\n     * Counterpart to Solidity's `-` operator.\\n     *\\n     * Requirements:\\n     * - Subtraction cannot underflow.\\n     */\\n    function sub(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {\\n        require(b <= a, errorMessage);\\n        uint256 c = a - b;\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the multiplication of two unsigned integers, reverting on overflow.\\n     *\\n     * Counterpart to Solidity's `*` operator.\\n     *\\n     * Requirements:\\n     * - Multiplication cannot overflow.\\n     */\\n    function mul(uint256 a, uint256 b) internal pure returns (uint256) {\\n        // Gas optimization: this is cheaper than requiring 'a' not being zero, but the\\n        // benefit is lost if 'b' is also tested.\\n        // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522\\n        if (a == 0) {\\n            return 0;\\n        }\\n\\n        uint256 c = a * b;\\n        require(c / a == b, \\\"SafeMath: multiplication overflow\\\");\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the multiplication of two unsigned integers, reverting on overflow.\\n     *\\n     * Counterpart to Solidity's `*` operator.\\n     *\\n     * Requirements:\\n     * - Multiplication cannot overflow.\\n     */\\n    function mul(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {\\n        // Gas optimization: this is cheaper than requiring 'a' not being zero, but the\\n        // benefit is lost if 'b' is also tested.\\n        // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522\\n        if (a == 0) {\\n            return 0;\\n        }\\n\\n        uint256 c = a * b;\\n        require(c / a == b, errorMessage);\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the integer division of two unsigned integers.\\n     * Reverts on division by zero. The result is rounded towards zero.\\n     *\\n     * Counterpart to Solidity's `/` operator. Note: this function uses a\\n     * `revert` opcode (which leaves remaining gas untouched) while Solidity\\n     * uses an invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     * - The divisor cannot be zero.\\n     */\\n    function div(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return div(a, b, \\\"SafeMath: division by zero\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the integer division of two unsigned integers.\\n     * Reverts with custom message on division by zero. The result is rounded towards zero.\\n     *\\n     * Counterpart to Solidity's `/` operator. Note: this function uses a\\n     * `revert` opcode (which leaves remaining gas untouched) while Solidity\\n     * uses an invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     * - The divisor cannot be zero.\\n     */\\n    function div(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {\\n        // Solidity only automatically asserts when dividing by 0\\n        require(b > 0, errorMessage);\\n        uint256 c = a / b;\\n        // assert(a == b * c + a % b); // There is no case in which this doesn't hold\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),\\n     * Reverts when dividing by zero.\\n     *\\n     * Counterpart to Solidity's `%` operator. This function uses a `revert`\\n     * opcode (which leaves remaining gas untouched) while Solidity uses an\\n     * invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     * - The divisor cannot be zero.\\n     */\\n    function mod(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return mod(a, b, \\\"SafeMath: modulo by zero\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),\\n     * Reverts with custom message when dividing by zero.\\n     *\\n     * Counterpart to Solidity's `%` operator. This function uses a `revert`\\n     * opcode (which leaves remaining gas untouched) while Solidity uses an\\n     * invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     * - The divisor cannot be zero.\\n     */\\n    function mod(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {\\n        require(b != 0, errorMessage);\\n        return a % b;\\n    }\\n}\\n\",\"keccak256\":\"0xe6a9e335fc1103ecb06bdbc7159cb2c2b52a9eddfe1c04a794bd47967e7fccf5\",\"license\":\"MIT\"},\"contracts/Vesting.sol\":{\"content\":\"// SPDX-License-Identifier: Apache License, Version 2.0\\npragma solidity 0.6.10;\\n\\nimport \\\"./EIP20Interface.sol\\\";\\nimport \\\"./SafeMath.sol\\\";\\n\\n\\ncontract Vesting {\\n    using SafeMath for uint256;\\n\\n    address public vestingToken;\\n    address public recipient;\\n\\n    uint256 public vestingAmount;\\n    uint256 public vestingBegin;\\n    uint256 public vestingCliff;\\n    uint256 public vestingEnd;\\n\\n    uint256 public lastUpdate;\\n\\n    constructor(\\n        address vestingToken_,\\n        address recipient_,\\n        uint256 vestingAmount_,\\n        uint256 vestingBegin_,\\n        uint256 vestingCliff_,\\n        uint256 vestingEnd_\\n    ) public {\\n        // Commenting this out for simplicity\\n        // require(vestingBegin_ >= block.timestamp, \\\"TreasuryVester.constructor: vesting begin too early\\\");\\n        require(vestingCliff_ >= vestingBegin_, \\\"TreasuryVester.constructor: cliff is too early\\\");\\n        require(vestingEnd_ > vestingCliff_, \\\"TreasuryVester.constructor: end is too early\\\");\\n\\n        vestingToken = vestingToken_;\\n        recipient = recipient_;\\n\\n        vestingAmount = vestingAmount_;\\n        vestingBegin = vestingBegin_;\\n        vestingCliff = vestingCliff_;\\n        vestingEnd = vestingEnd_;\\n\\n        lastUpdate = vestingBegin;\\n    }\\n\\n    function setRecipient(address recipient_) public {\\n        require(msg.sender == recipient, \\\"TreasuryVester.setRecipient: unauthorized\\\");\\n        recipient = recipient_;\\n    }\\n\\n    function claim() public {\\n        require(block.timestamp >= vestingCliff, \\\"TreasuryVester.claim: not time yet\\\");\\n        uint256 amount;\\n        if (block.timestamp >= vestingEnd) {\\n            amount = EIP20Interface(vestingToken).balanceOf(address(this));\\n        } else {\\n            amount = vestingAmount.mul(block.timestamp.sub(lastUpdate)).div(vestingEnd.sub(vestingBegin));\\n            lastUpdate = block.timestamp;\\n        }\\n        EIP20Interface(vestingToken).transfer(recipient, amount);\\n    }\\n}\\n\\ncontract VestingUserTwo is Vesting {\\n    constructor(\\n        address vestingToken_,\\n        address recipient_,\\n        uint256 vestingAmount_,\\n        uint256 vestingBegin_,\\n        uint256 vestingCliff_,\\n        uint256 vestingEnd_\\n    ) public Vesting(\\n        vestingToken_,\\n        recipient_,\\n        vestingAmount_,\\n        vestingBegin_,\\n        vestingCliff_,\\n        vestingEnd_\\n    ) {}\\n}\",\"keccak256\":\"0xe967d9a16bec1f56eb3127d98a596387f8c012f2d419dd1286ab5f8b087cc5be\",\"license\":\"Apache License\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b50604051610792380380610792833981810160405260c081101561003357600080fd5b508051602082015160408301516060840151608085015160a09095015193949293919290918585858585858282101561009d5760405162461bcd60e51b815260040180806020018281038252602e815260200180610738602e913960400191505060405180910390fd5b8181116100db5760405162461bcd60e51b815260040180806020018281038252602c815260200180610766602c913960400191505060405180910390fd5b600080546001600160a01b039788166001600160a01b03199182161790915560018054969097169516949094179094556002919091556003819055600492909255600555600655505050505050610601806101376000396000f3fe608060405234801561001057600080fd5b50600436106100925760003560e01c806366d003ac1161006657806366d003ac1461010557806384a1931f1461010d578063c046371114610115578063e29bc68b1461011d578063f3640e741461012557610092565b8062728f761461009757806319d152fa146100b15780633bbed4a0146100d55780634e71d92d146100fd575b600080fd5b61009f61012d565b60408051918252519081900360200190f35b6100b9610133565b604080516001600160a01b039092168252519081900360200190f35b6100fb600480360360208110156100eb57600080fd5b50356001600160a01b0316610142565b005b6100fb6101ad565b6100b9610356565b61009f610365565b61009f61036b565b61009f610371565b61009f610377565b60025481565b6000546001600160a01b031681565b6001546001600160a01b0316331461018b5760405162461bcd60e51b81526004018080602001828103825260298152602001806105606029913960400191505060405180910390fd5b600180546001600160a01b0319166001600160a01b0392909216919091179055565b6004544210156101ee5760405162461bcd60e51b81526004018080602001828103825260228152602001806105896022913960400191505060405180910390fd5b6000600554421061027757600054604080516370a0823160e01b815230600482015290516001600160a01b03909216916370a0823191602480820192602092909190829003018186803b15801561024457600080fd5b505afa158015610258573d6000803e3d6000fd5b505050506040513d602081101561026e57600080fd5b505190506102cb565b6102c461029160035460055461037d90919063ffffffff16565b6102b86102a96006544261037d90919063ffffffff16565b6002549063ffffffff6103c816565b9063ffffffff61042116565b4260065590505b600080546001546040805163a9059cbb60e01b81526001600160a01b039283166004820152602481018690529051919092169263a9059cbb92604480820193602093909283900390910190829087803b15801561032757600080fd5b505af115801561033b573d6000803e3d6000fd5b505050506040513d602081101561035157600080fd5b505050565b6001546001600160a01b031681565b60055481565b60065481565b60035481565b60045481565b60006103bf83836040518060400160405280601f81526020017f536166654d6174683a207375627472616374696f6e20756e646572666c6f7700815250610463565b90505b92915050565b6000826103d7575060006103c2565b828202828482816103e457fe5b04146103bf5760405162461bcd60e51b81526004018080602001828103825260218152602001806105ab6021913960400191505060405180910390fd5b60006103bf83836040518060400160405280601a81526020017f536166654d6174683a206469766973696f6e206279207a65726f0000000000008152506104fa565b600081848411156104f25760405162461bcd60e51b81526004018080602001828103825283818151815260200191508051906020019080838360005b838110156104b757818101518382015260200161049f565b50505050905090810190601f1680156104e45780820380516001836020036101000a031916815260200191505b509250505060405180910390fd5b505050900390565b600081836105495760405162461bcd60e51b81526020600482018181528351602484015283519092839260449091019190850190808383600083156104b757818101518382015260200161049f565b50600083858161055557fe5b049594505050505056fe54726561737572795665737465722e736574526563697069656e743a20756e617574686f72697a656454726561737572795665737465722e636c61696d3a206e6f742074696d6520796574536166654d6174683a206d756c7469706c69636174696f6e206f766572666c6f77a2646970667358221220685a636d9420413fcb2d76fe33fab009a5f692d5d4cb23519c50bfa5fdc71f9b64736f6c634300060a003354726561737572795665737465722e636f6e7374727563746f723a20636c69666620697320746f6f206561726c7954726561737572795665737465722e636f6e7374727563746f723a20656e6420697320746f6f206561726c79",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100925760003560e01c806366d003ac1161006657806366d003ac1461010557806384a1931f1461010d578063c046371114610115578063e29bc68b1461011d578063f3640e741461012557610092565b8062728f761461009757806319d152fa146100b15780633bbed4a0146100d55780634e71d92d146100fd575b600080fd5b61009f61012d565b60408051918252519081900360200190f35b6100b9610133565b604080516001600160a01b039092168252519081900360200190f35b6100fb600480360360208110156100eb57600080fd5b50356001600160a01b0316610142565b005b6100fb6101ad565b6100b9610356565b61009f610365565b61009f61036b565b61009f610371565b61009f610377565b60025481565b6000546001600160a01b031681565b6001546001600160a01b0316331461018b5760405162461bcd60e51b81526004018080602001828103825260298152602001806105606029913960400191505060405180910390fd5b600180546001600160a01b0319166001600160a01b0392909216919091179055565b6004544210156101ee5760405162461bcd60e51b81526004018080602001828103825260228152602001806105896022913960400191505060405180910390fd5b6000600554421061027757600054604080516370a0823160e01b815230600482015290516001600160a01b03909216916370a0823191602480820192602092909190829003018186803b15801561024457600080fd5b505afa158015610258573d6000803e3d6000fd5b505050506040513d602081101561026e57600080fd5b505190506102cb565b6102c461029160035460055461037d90919063ffffffff16565b6102b86102a96006544261037d90919063ffffffff16565b6002549063ffffffff6103c816565b9063ffffffff61042116565b4260065590505b600080546001546040805163a9059cbb60e01b81526001600160a01b039283166004820152602481018690529051919092169263a9059cbb92604480820193602093909283900390910190829087803b15801561032757600080fd5b505af115801561033b573d6000803e3d6000fd5b505050506040513d602081101561035157600080fd5b505050565b6001546001600160a01b031681565b60055481565b60065481565b60035481565b60045481565b60006103bf83836040518060400160405280601f81526020017f536166654d6174683a207375627472616374696f6e20756e646572666c6f7700815250610463565b90505b92915050565b6000826103d7575060006103c2565b828202828482816103e457fe5b04146103bf5760405162461bcd60e51b81526004018080602001828103825260218152602001806105ab6021913960400191505060405180910390fd5b60006103bf83836040518060400160405280601a81526020017f536166654d6174683a206469766973696f6e206279207a65726f0000000000008152506104fa565b600081848411156104f25760405162461bcd60e51b81526004018080602001828103825283818151815260200191508051906020019080838360005b838110156104b757818101518382015260200161049f565b50505050905090810190601f1680156104e45780820380516001836020036101000a031916815260200191505b509250505060405180910390fd5b505050900390565b600081836105495760405162461bcd60e51b81526020600482018181528351602484015283519092839260449091019190850190808383600083156104b757818101518382015260200161049f565b50600083858161055557fe5b049594505050505056fe54726561737572795665737465722e736574526563697069656e743a20756e617574686f72697a656454726561737572795665737465722e636c61696d3a206e6f742074696d6520796574536166654d6174683a206d756c7469706c69636174696f6e206f766572666c6f77a2646970667358221220685a636d9420413fcb2d76fe33fab009a5f692d5d4cb23519c50bfa5fdc71f9b64736f6c634300060a0033",
+  "devdoc": {
+    "methods": {}
+  },
+  "userdoc": {
+    "methods": {}
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 12584,
+        "contract": "contracts/Vesting.sol:VestingUserTwo",
+        "label": "vestingToken",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_address"
+      },
+      {
+        "astId": 12586,
+        "contract": "contracts/Vesting.sol:VestingUserTwo",
+        "label": "recipient",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_address"
+      },
+      {
+        "astId": 12588,
+        "contract": "contracts/Vesting.sol:VestingUserTwo",
+        "label": "vestingAmount",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 12590,
+        "contract": "contracts/Vesting.sol:VestingUserTwo",
+        "label": "vestingBegin",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 12592,
+        "contract": "contracts/Vesting.sol:VestingUserTwo",
+        "label": "vestingCliff",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 12594,
+        "contract": "contracts/Vesting.sol:VestingUserTwo",
+        "label": "vestingEnd",
+        "offset": 0,
+        "slot": "5",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 12596,
+        "contract": "contracts/Vesting.sol:VestingUserTwo",
+        "label": "lastUpdate",
+        "offset": 0,
+        "slot": "6",
+        "type": "t_uint256"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}
