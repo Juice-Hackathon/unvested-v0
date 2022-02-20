@@ -7,7 +7,7 @@ import { executionAsyncResource } from "async_hooks";
 async function main() {
 
   const { execute, read } = deployments;
-  const {deployer, borrower1, borrower2} = await getNamedAccounts();
+  const {deployer, lender, borrower1, borrower2} = await getNamedAccounts();
 
   const comptroller = await deployments.get("Comptroller");
   const vestingOne = await deployments.get("Vesting");
@@ -17,7 +17,9 @@ async function main() {
 
   // Transfer Ownership of Vesting Contract
   await execute("Vesting", {from: borrower1, log: true}, "setRecipient",comptroller.address);
+  await execute("Vesting", {from: borrower2, log: true}, "setRecipient",comptroller.address);
   await execute("Comptroller", {from: borrower1, log: true}, "registerVestingContract", vestingOne.address);
+  await execute("Comptroller", {from: borrower2, log: true}, "registerVestingContract", vestingTwo.address);
 
   // Calculating NPV
   var calculatedNPV;

@@ -1,18 +1,23 @@
 const { executionAsyncResource } = require("async_hooks");
 const {ether} = require("../utils/common/unitsUtils.ts")
+const linkTokenPrice = {
+  42: "0x396c5E36DD0a0F5a5D33dae44368D4193f69a1F0",
+  421611: "0x52C9Eb2Cc68555357221CAe1e5f2dD956bC194E5",
+  1666700000: "0xcd11Ac8C18f3423c7a9C9d5784B580079A75E69a",
+};
 
 module.exports = async function ({ ethers: { getNamedSigner }, getNamedAccounts, getChainId, deployments }) {
   const { deploy, execute } = deployments
 
-  const { deployer, borrower1, borrower2 } = await getNamedAccounts();
-  const chainId = getChainId();
+  const { deployer, lender, borrower1, borrower2 } = await getNamedAccounts();
+  const chainId = await getChainId();
 
   // Deploy YearnMockToken
   const chainlink = await deploy("YearnMockToken", {
     from: deployer,
     args: [
       deployer,
-      ether(1000000000),
+      ether(10000000),
       "Chainlink",
       "LINK",
       18,
@@ -26,6 +31,13 @@ module.exports = async function ({ ethers: { getNamedSigner }, getNamedAccounts,
   // LINK is 18 decimals so price is 10^18 * 10^18 / 10^18
   await execute('SimplePriceOracle',{from: deployer, log: true}, 'setDirectPrice', chainlink.address, ether(10));
 
+  // Set Chainlink oracle for LINK token if it exists
+  if (linkTokenPrice[Number(chainId)]) {
+    await execute('ChainlinkPriceOracle',{from: deployer, log: true}, 'setChainlinkAggregator',  chainlink.address, linkTokenPrice[Number(chainId)]);
+    await execute('ChainlinkPriceOracle',{from: deployer, log: true}, 'setDirectPrice', chainlink.address, ether(10));
+  }
+
+  console.log(chainId.toString() == '31337' ? borrower1 : "0xbA8EC1F5eE094912266fbCCa6331DfF6F1A719F1", chainId.toString())
   // Deploy VestingContracts
 
   const vestingOne = await deploy("Vesting", {
@@ -47,7 +59,7 @@ module.exports = async function ({ ethers: { getNamedSigner }, getNamedAccounts,
     args: [
       chainlink.address,
       chainId.toString() == '31337' ? borrower2 : "0x3652588636C9D85125Fa264f794a63E3af188E03", // NOTE: set recipient to deployer which can be configured to a third party later on
-      ether(100000), // 100000 LINK vesting amount
+      ether(900000), // 900000 LINK vesting amount
       1644937095, // Tuesday, February 15, 2022 10:58:15 PM GMT+08:00
       1644937095, // No cliff TBD
       1708009095 // Thursday, February 15, 2024 2:58:15 PM
@@ -58,8 +70,8 @@ module.exports = async function ({ ethers: { getNamedSigner }, getNamedAccounts,
 
   // Transfer 1000000 LINK to vesting contract ONE
   await execute('YearnMockToken',{from: deployer, log: true}, 'transfer', vestingOne.address, ether(1000000));
-  // Transfer 100000 LINK to vesting contract TWO
-  await execute('YearnMockToken',{from: deployer, log: true}, 'transfer', vestingTwo.address, ether(100000));
+  // Transfer 900000 LINK to vesting contract TWO
+  await execute('YearnMockToken',{from: deployer, log: true}, 'transfer', vestingTwo.address, ether(900000));
 
 
   // SetNPVConfig on Comptroller

@@ -3,7 +3,7 @@
   "chainId": "42",
   "contracts": {
     "CErc20": {
-      "address": "0x920D1dDE0f501A8079d6D3dA6aA7f6c3d9cEa394",
+      "address": "0x2e51b18eB85690Cd866e03d88Cd2BCB86aC09c34",
       "abi": [
         {
           "inputs": [
@@ -1376,7 +1376,7 @@
       ]
     },
     "ChainlinkPriceOracle": {
-      "address": "0x6a44D82e035B05E0b31B09705f5bf06920871D3E",
+      "address": "0xd07C52356eB4537EB3C33787505c4e40BF568ca1",
       "abi": [
         {
           "anonymous": false,
@@ -1413,16 +1413,16 @@
           "inputs": [
             {
               "internalType": "address",
-              "name": "asset",
+              "name": "",
               "type": "address"
             }
           ],
-          "name": "assetPrices",
+          "name": "chainlinkOracles",
           "outputs": [
             {
-              "internalType": "uint256",
+              "internalType": "contract IChainlinkAggregatorV3",
               "name": "",
-              "type": "uint256"
+              "type": "address"
             }
           ],
           "stateMutability": "view",
@@ -1483,6 +1483,43 @@
           "inputs": [
             {
               "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ],
+          "name": "prices",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "asset",
+              "type": "address"
+            },
+            {
+              "internalType": "contract IChainlinkAggregatorV3",
+              "name": "chainlinkAggregator",
+              "type": "address"
+            }
+          ],
+          "name": "setChainlinkAggregator",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
               "name": "asset",
               "type": "address"
             },
@@ -1518,7 +1555,7 @@
       ]
     },
     "Comptroller": {
-      "address": "0x6A887174daf6A5c26854D17F959132abE2002ffb",
+      "address": "0x6F9aa88ba3673455087BB125bfDb7Fe7aacA283D",
       "abi": [
         {
           "inputs": [],
@@ -2503,7 +2540,7 @@
       ]
     },
     "SimplePriceOracle": {
-      "address": "0x37Ab09fa42D070A0a10bFbb00a23D712235A8Cb1",
+      "address": "0x71051EB52ccA66FDdDbF02426a6AdBdb7565bc82",
       "abi": [
         {
           "anonymous": false,
@@ -2645,7 +2682,7 @@
       ]
     },
     "StandardTokenMock": {
-      "address": "0xeD65468545895eCCC4c7C70540acBf44d410c034",
+      "address": "0x7260F9380e0a9F986ac70C475415CDD112DeA0cd",
       "abi": [
         {
           "inputs": [
@@ -2969,7 +3006,7 @@
       ]
     },
     "Vesting": {
-      "address": "0x669662A4DBd380C90cea4599BFd26D2C6c166d03",
+      "address": "0x02746550f99A98c6f424C4977766AEC16DA0E00E",
       "abi": [
         {
           "inputs": [
@@ -3121,7 +3158,7 @@
       ]
     },
     "VestingUserTwo": {
-      "address": "0x6e01421587396eb6Adc7B4Bd5941d651a7F6A13f",
+      "address": "0xB79203B78105a592C9E138E70c6D788e61EBd91A",
       "abi": [
         {
           "inputs": [
@@ -3273,7 +3310,7 @@
       ]
     },
     "WhitePaperInterestRateModel": {
-      "address": "0x0679CF247F6D5cCf1625b9f3DeB5343c00b96FDb",
+      "address": "0xDe649b9f1C8C2827c1b0D18C88765ED49b4D3260",
       "abi": [
         {
           "inputs": [
@@ -3457,7 +3494,7 @@
       ]
     },
     "YearnMockToken": {
-      "address": "0xd2A9B7b007d144F1F02a4ef355b65b55B0B5d7d9",
+      "address": "0xC6ee9811B23d9ED3F8660Cf1aD7da4569D466e09",
       "abi": [
         {
           "inputs": [

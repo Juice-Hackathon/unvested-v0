@@ -6,7 +6,7 @@ import {ether} from "../utils/common/unitsUtils";
 async function main() {
 
   const { execute, read } = deployments;
-  const {deployer, borrower1, borrower2, liquidator} = await getNamedAccounts();
+  const {deployer, lender, borrower1, borrower2, liquidator} = await getNamedAccounts();
 
   const comptroller = await deployments.get("Comptroller");
   const yfi = await deployments.get("YearnMockToken");
@@ -54,7 +54,7 @@ async function main() {
 
   // Trigger shortfall
   await execute("SimplePriceOracle", {from: deployer, log: true}, "setDirectPrice", yfi.address, ether(3));
-  console.log("Updated oracle price to: $2000");
+  console.log("Updated oracle price to: $3");
   
   // Getting accountLiquidity with shortfall
   const accountLiquidityShortFall = await read("Comptroller", {},"getAccountLiquidity", borrower1);
