@@ -8,7 +8,7 @@ module.exports = async function ({ ethers, getNamedAccounts, getChainId, deploym
 
   const { deployer } = await getNamedAccounts()
 
-  const usdcAddress = (await deployments.get("StandardTokenMock")).address;
+  const usdcAddress = (await deployments.get("USDCMockToken")).address;
   const comptrollerAddress = (await deployments.get("Comptroller")).address;
   const interestRateModelAddress = (await deployments.get("WhitePaperInterestRateModel")).address;
 
@@ -33,7 +33,7 @@ module.exports = async function ({ ethers, getNamedAccounts, getChainId, deploym
 
   console.log('jUSDC deployed');
   
-  await execute("StandardTokenMock",{from: deployer, log: true}, 'approve', CErc20.address, ether(10000000));
+  await execute("USDCMockToken",{from: deployer, log: true}, 'approve', CErc20.address, ether(10000000));
   console.log("Approved USDC to fUSDC");
 
   // Mint $3M jUSDC
@@ -43,4 +43,4 @@ module.exports = async function ({ ethers, getNamedAccounts, getChainId, deploym
 }
 
 module.exports.tags = ["CErc20"]
-module.exports.dependencies = ["SimplePriceOracle", "Comptroller", "StandardTokenMock"]
+module.exports.dependencies = ["SimplePriceOracle", "Comptroller", "USDCMockToken"]

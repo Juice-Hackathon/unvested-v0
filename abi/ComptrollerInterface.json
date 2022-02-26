@@ -3,6 +3,25 @@
     "inputs": [
       {
         "internalType": "address",
+        "name": "vestingContract",
+        "type": "address"
+      }
+    ],
+    "name": "_supportCollateralVault",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "cToken",
         "type": "address"
       },

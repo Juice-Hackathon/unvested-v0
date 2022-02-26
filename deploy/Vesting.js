@@ -12,8 +12,8 @@ module.exports = async function ({ ethers: { getNamedSigner }, getNamedAccounts,
   const { deployer, lender, borrower1, borrower2 } = await getNamedAccounts();
   const chainId = await getChainId();
 
-  // Deploy YearnMockToken
-  const chainlink = await deploy("YearnMockToken", {
+  // Deploy LINKMockToken
+  const chainlink = await deploy("LINKMockToken", {
     from: deployer,
     args: [
       deployer,
@@ -69,9 +69,9 @@ module.exports = async function ({ ethers: { getNamedSigner }, getNamedAccounts,
   });
 
   // Transfer 1000000 LINK to vesting contract ONE
-  await execute('YearnMockToken',{from: deployer, log: true}, 'transfer', vestingOne.address, ether(1000000));
+  await execute('LINKMockToken',{from: deployer, log: true}, 'transfer', vestingOne.address, ether(1000000));
   // Transfer 900000 LINK to vesting contract TWO
-  await execute('YearnMockToken',{from: deployer, log: true}, 'transfer', vestingTwo.address, ether(900000));
+  await execute('LINKMockToken',{from: deployer, log: true}, 'transfer', vestingTwo.address, ether(900000));
 
 
   // SetNPVConfig on Comptroller
@@ -99,4 +99,4 @@ module.exports = async function ({ ethers: { getNamedSigner }, getNamedAccounts,
 }
 
 module.exports.tags = ["Vesting"]
-module.exports.dependencies = ["SimplePriceOracle"]
+module.exports.dependencies = ["SimplePriceOracle", "Comptroller"]

@@ -13,13 +13,13 @@ module.exports = async function ({ ethers, getNamedAccounts, getChainId, deploym
   });
 
   const chainId = await getChainId();
+
+  // If not local, use chainlink price oracle with fallback
   const oracleToUse = chainId.toString() == '31337' ? simplePriceOracle.address : chainlinkPriceOracle.address;
-  // Change this to chainlink price oracle when on Kovan. For all other networks change to simple oracle
   await execute('Comptroller',{from: deployer, log: true}, '_setPriceOracle', oracleToUse);
   await execute('Comptroller',{from: deployer, log: true}, '_setMaxAssets', 10);
   await execute('Comptroller',{from: deployer, log: true}, '_setCloseFactor', '500000000000000000');
   await execute('Comptroller',{from: deployer, log: true}, '_setLiquidationIncentive', '1080000000000000000');
-  
 
   console.log('comptroller deployed');
 }

@@ -39,6 +39,8 @@ contract ComptrollerV1Storage is UnitrollerAdminStorage {
      */
     uint public closeFactorMantissa;
 
+    mapping(address => bool) public allowedCaller;
+
     /**
      * @notice Multiplier representing the discount on collateral that a liquidator receives
      */

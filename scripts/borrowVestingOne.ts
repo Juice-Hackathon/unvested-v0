@@ -9,7 +9,7 @@ async function main() {
   const {deployer, lender, borrower1, borrower2} = await getNamedAccounts();
 
   const comptroller = await deployments.get("Comptroller");
-  const chainlink = await deployments.get("YearnMockToken");
+  const chainlink = await deployments.get("LINKMockToken");
   const vestingOne = await deployments.get("Vesting");
   const vestingTwo = await deployments.get("VestingUserTwo");
   const jUSDC = await deployments.get("CErc20");
@@ -49,7 +49,7 @@ async function main() {
   await execute("CErc20", {from: borrower1, log: true}, "borrow", '1000000000000');
 
   // Get USDC balance post
-  const balancePost = await read("StandardTokenMock", {}, "balanceOf", borrower1);
+  const balancePost = await read("USDCMockToken", {}, "balanceOf", borrower1);
   
   console.log("Total jUSDC supply: ", totalSupply.toString());
   console.log("Previous USDC borrower balance: ", balancePrevious.toString());
@@ -97,7 +97,7 @@ async function main() {
 
   // Set oracle back to 10k and repay debt
   await execute("SimplePriceOracle", {from: deployer, log: true}, "setDirectPrice", chainlink.address, ether(10));
-  await execute("StandardTokenMock", {from: borrower1, log: true}, "approve", jUSDC.address, '1000000000000000000');
+  await execute("USDCMockToken", {from: borrower1, log: true}, "approve", jUSDC.address, '1000000000000000000');
   await execute("CErc20", {from: deployer, log: true}, "repayBorrowBehalf", borrower1, constants.MaxUint256); // repay all debt FROM deployer on behalf of borrower
 
   // Getting accountLiquidity with shortfall

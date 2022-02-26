@@ -128,6 +128,8 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
 
     constructor() public {
         admin = msg.sender;
+
+        allowedCaller[msg.sender] = true;
     }
 
     /*** Assets You Are In ***/
@@ -1182,10 +1184,8 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
       * @param _vestingContractAddress to list as collateral
       * @return uint 0=success, otherwise a failure. (See enum Error for details)
       */
-    function _supportCollateralVault(address _vestingContractAddress) external returns (uint) {
-        if (msg.sender != admin) {
-            return fail(Error.UNAUTHORIZED, FailureInfo.SUPPORT_MARKET_OWNER_CHECK);
-        }
+    function _supportCollateralVault(address _vestingContractAddress) external override returns (uint) {
+        require(allowedCaller[msg.sender], "Not Comptroller or whitelisted factory");
 
         IVesting _vestingContract = IVesting(_vestingContractAddress);
 
@@ -1250,7 +1250,10 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
         return uint(Error.NO_ERROR);
     }
 
-
+    function _updateAllowedCaller(address _caller, bool _status) external {
+        require (msg.sender == admin, "Must be admin");
+        allowedCaller[_caller] = _status;
+    }
 
     /**
      * @dev Check that caller is admin or this contract is initializing itself as
