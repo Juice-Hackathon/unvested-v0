@@ -8,6 +8,10 @@ coverage.json
 .env
 .DS_Store
 deployments/localhost
-deployments/kovan/solcInputs/
-deployments/mainnet/solcInputs/
+deployments/kovan/
+deployments/mainnet/
+deployments/arbitrum-testnet
+deployments/aurora-testnet
+deployments/metis-testnet
+deployments/harmony-testnet
 /typechain

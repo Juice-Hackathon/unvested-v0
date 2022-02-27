@@ -161,6 +161,9 @@ contract Comptroller is ComptrollerV1Storage, ComptrollerInterface, ComptrollerE
     function registerVestingContract(address _vestingContractAddress) external override {
         IVesting _vestingContract = IVesting(_vestingContractAddress);
         
+        // Require only one vesting contract per account
+        require(accountToVesting[msg.sender] == IVesting(0), "Already registered a vesting contract");
+
         // Require collateral is listed
         require(vestingContractInfo[_vestingContract].isListed, "Must be listed");
 
