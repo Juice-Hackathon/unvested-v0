@@ -10,6 +10,11 @@
         "internalType": "contract ComptrollerInterface",
         "name": "_comptroller",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_defaultVestingAmount",
+        "type": "uint256"
       }
     ],
     "stateMutability": "nonpayable",
@@ -34,26 +39,6 @@
         "internalType": "address",
         "name": "_recipient",
         "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_vestingAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_vestingBegin",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_vestingCliff",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_vestingEnd",
-        "type": "uint256"
       }
     ],
     "name": "create",
@@ -65,6 +50,19 @@
       }
     ],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "defaultVestingAmount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {

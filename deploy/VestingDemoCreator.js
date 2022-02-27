@@ -1,5 +1,5 @@
 const { executionAsyncResource } = require("async_hooks");
-const {ether} = require("../utils/common/unitsUtils.ts")
+const { ether } = require("../utils/common/unitsUtils.ts")
 
 module.exports = async function ({ ethers: { getNamedSigner }, getNamedAccounts, getChainId, deployments }) {
   const { deploy, execute } = deployments
@@ -13,7 +13,8 @@ module.exports = async function ({ ethers: { getNamedSigner }, getNamedAccounts,
     from: deployer,
     args: [
       chainlink.address,
-      comptroller.address
+      comptroller.address,
+      ether(10000) // 10000 LINK vesting
     ],
     log: true,
     deterministicDeployment: false

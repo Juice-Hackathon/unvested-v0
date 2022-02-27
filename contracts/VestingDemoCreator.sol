@@ -9,36 +9,35 @@ import "./LINKMockToken.sol";
 contract VestingDemoCreator {
     using SafeMath for uint256;
 
-    ComptrollerInterface public comptroller;
-    LINKMockToken public vestingToken;
+    uint256 ONE_YEAR_IN_SECONDS = 31557600;
+
+    ComptrollerInterface public immutable comptroller;
+    LINKMockToken public immutable vestingToken;
+    uint256 public immutable defaultVestingAmount;
 
     constructor(
         LINKMockToken _vestingToken,
-        ComptrollerInterface _comptroller
+        ComptrollerInterface _comptroller,
+        uint256 _defaultVestingAmount
     ) public {
         vestingToken = _vestingToken;
         comptroller = _comptroller;
+        defaultVestingAmount = _defaultVestingAmount;
     }
 
-    function create(
-        address _recipient,
-        uint256 _vestingAmount,
-        uint256 _vestingBegin,
-        uint256 _vestingCliff,
-        uint256 _vestingEnd
-    ) external returns (Vesting) {
+    function create(address _recipient) external returns (Vesting) {
         // Deploy vesting contract
         Vesting vestingContract = new Vesting(
             address(vestingToken),
             _recipient,
-            _vestingAmount,
-            _vestingBegin,
-            _vestingCliff,
-            _vestingEnd
+            defaultVestingAmount,
+            block.timestamp,                                    // Start vesting at time of deployment
+            block.timestamp,                                    // No cliff
+            block.timestamp.add(ONE_YEAR_IN_SECONDS.mul(2))     // 2 year vesting schedule
         );
 
         // Mint tokens to vesting contract. Unlimited supply tokens
-        vestingToken.mint(address(vestingContract), _vestingAmount);
+        vestingToken.mint(address(vestingContract), defaultVestingAmount);
 
         // Whitelist on Comptroller. Must be whitelisted on Comptroller first
         comptroller._supportCollateralVault(address(vestingContract));

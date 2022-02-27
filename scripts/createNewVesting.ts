@@ -15,11 +15,7 @@ async function main() {
     "VestingDemoCreator",
     {from: deployer, log: true},
     "create",
-    borrower2,
-    ether(1000000), // 1000000 LINK vesting amount
-    1644937095, // Tuesday, February 15, 2022 10:58:15 PM GMT+08:00
-    1644937095, // No cliff
-    1708009095 // Thursday, February 15, 2024 2:58:15 PM);
+    borrower2
   );
 }
 
