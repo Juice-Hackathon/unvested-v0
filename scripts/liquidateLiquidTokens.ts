@@ -9,7 +9,7 @@ async function main() {
   const {deployer, lender, borrower1, borrower2, liquidator} = await getNamedAccounts();
 
   const comptroller = await deployments.get("Comptroller");
-  const yfi = await deployments.get("YearnMockToken");
+  const chainlink = await deployments.get("LINKMockToken");
   const vestingOne = await deployments.get("Vesting");
   const vestingTwo = await deployments.get("VestingUserTwo");
   const jUSDC = await deployments.get("CErc20");
@@ -28,7 +28,7 @@ async function main() {
   await execute("CErc20", {from: borrower1, log: true}, "borrow", '1000000000000');
 
   // Get USDC balance post
-  const balancePost = await read("StandardTokenMock", {}, "balanceOf", borrower1);
+  const balancePost = await read("USDCMockToken", {}, "balanceOf", borrower1);
   
   console.log("Total jUSDC supply: ", totalSupply.toString());
   console.log("Previous USDC borrower balance: ", balancePrevious.toString());
@@ -53,7 +53,7 @@ async function main() {
   }
 
   // Trigger shortfall
-  await execute("SimplePriceOracle", {from: deployer, log: true}, "setDirectPrice", yfi.address, ether(3));
+  await execute("SimplePriceOracle", {from: deployer, log: true}, "setDirectPrice", chainlink.address, ether(3));
   console.log("Updated oracle price to: $3");
   
   // Getting accountLiquidity with shortfall
@@ -68,12 +68,12 @@ async function main() {
   }
 
   // Liquidate
-  const vestingContractBalancePrevious = await read("YearnMockToken", {}, "balanceOf", vestingOne.address);
-  const liquidatorBalancePrevious = await read("YearnMockToken", {}, "balanceOf", deployer);
-  await execute("StandardTokenMock", {from: deployer, log: true}, "approve", jUSDC.address, '1000000000000000000');
+  const vestingContractBalancePrevious = await read("LINKMockToken", {}, "balanceOf", vestingOne.address);
+  const liquidatorBalancePrevious = await read("LINKMockToken", {}, "balanceOf", deployer);
+  await execute("USDCMockToken", {from: deployer, log: true}, "approve", jUSDC.address, '1000000000000000000');
   await execute("CErc20", {from: deployer, log: true}, "liquidateBorrow", borrower1, '100000000', vestingOne.address); // Repay $100
-  const vestingContractBalancePost = await read("YearnMockToken", {}, "balanceOf", vestingOne.address);
-  const liquidatorBalancePost = await read("YearnMockToken", {}, "balanceOf", deployer);
+  const vestingContractBalancePost = await read("LINKMockToken", {}, "balanceOf", vestingOne.address);
+  const liquidatorBalancePost = await read("LINKMockToken", {}, "balanceOf", deployer);
   console.log("Previous Vesting Contract Balance: ", vestingContractBalancePrevious.toString());
   console.log("Current Vesting Contract Balance: ", vestingContractBalancePost.toString());
   console.log("Amount of YFI transferred to liquidator: ", liquidatorBalancePost.sub(liquidatorBalancePrevious).toString());
@@ -90,7 +90,7 @@ async function main() {
   }
 
   // Set oracle back to 10k and repay debt
-  await execute("SimplePriceOracle", {from: deployer, log: true}, "setDirectPrice", yfi.address, ether(10));
+  await execute("SimplePriceOracle", {from: deployer, log: true}, "setDirectPrice", chainlink.address, ether(10));
   await execute("CErc20", {from: deployer, log: true}, "repayBorrowBehalf", borrower1, constants.MaxUint256); // repay all debt FROM deployer on behalf of borrower
 
   // Getting accountLiquidity after repay

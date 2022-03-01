@@ -5,7 +5,7 @@ pragma solidity 0.6.10;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 // mock class using BasicToken
-contract YearnMockToken is ERC20 {
+contract LINKMockToken is ERC20 {
     constructor(
         address _initialAccount,
         uint256 _initialBalance,

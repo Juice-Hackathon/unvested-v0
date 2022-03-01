@@ -85,7 +85,7 @@ contract VestingContractWrapper is IVestingContractWrapper, ComptrollerErrorRepo
         // Balance of underlying must be greater than remaining as a validation. This assumes the vesting contract is immutable
         // therefore there is no possibility that a third party can remove funds and drain the balances in the vesting contract
         // after deployment
-        require(liquidAmount.add(vestedAmount).add(unvestedAmount) < balanceInVesting);
+        require(liquidAmount.add(vestedAmount).add(unvestedAmount) <= balanceInVesting, "Balance must match");
 
         // Approve max underlying tokens so Comptroller has ability to move funds from this contract
         IERC20(vestingToken).approve(address(comptroller), uint256(-1));

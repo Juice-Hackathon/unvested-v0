@@ -17,7 +17,7 @@ async function main() {
 
   // Transfer Ownership of Vesting Contract
   await execute("Vesting", {from: borrower1, log: true}, "setRecipient",comptroller.address);
-  await execute("Vesting", {from: borrower2, log: true}, "setRecipient",comptroller.address);
+  await execute("VestingUserTwo", {from: borrower2, log: true}, "setRecipient", comptroller.address);
   await execute("Comptroller", {from: borrower1, log: true}, "registerVestingContract", vestingOne.address);
   await execute("Comptroller", {from: borrower2, log: true}, "registerVestingContract", vestingTwo.address);
 
@@ -80,7 +80,7 @@ async function main() {
   // Try borrowing which will fail
   await execute("CErc20", {from: borrower1, log: true}, "borrow", '1000000000000');
   // Get USDC balance post
-  const balanceBorrowed = await read("StandardTokenMock", {}, "balanceOf", borrower1);
+  const balanceBorrowed = await read("USDCMockToken", {}, "balanceOf", borrower1);
   console.log("Balance of USDC should be 0: ", balanceBorrowed.toString());
 }
 

@@ -9,7 +9,7 @@ async function main() {
   const {deployer, lender, borrower1, borrower2, liquidator} = await getNamedAccounts();
 
   const comptroller = await deployments.get("Comptroller");
-  const chainlink = await deployments.get("YearnMockToken");
+  const chainlink = await deployments.get("LINKMockToken");
   const vestingOne = await deployments.get("Vesting");
   const vestingTwo = await deployments.get("VestingUserTwo");
   const jUSDC = await deployments.get("CErc20");

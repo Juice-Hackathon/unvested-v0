@@ -17,7 +17,7 @@ async function main() {
   // Liquidate borrower 1
   const vestingContractBalancePrevious = await read("YearnMockToken", {}, "balanceOf", vestingOne.address);
   const liquidatorBalancePrevious = await read("YearnMockToken", {}, "balanceOf", deployer);
-  await execute("StandardTokenMock", {from: deployer, log: true}, "approve", jUSDC.address, '1000000000000000000');
+  await execute("USDCMockToken", {from: deployer, log: true}, "approve", jUSDC.address, '1000000000000000000');
   await execute("CErc20", {from: deployer, log: true}, "liquidateBorrow", borrower1, '100000000', vestingOne.address); // Repay $100
   const vestingContractBalancePost = await read("YearnMockToken", {}, "balanceOf", vestingOne.address);
   const liquidatorBalancePost = await read("YearnMockToken", {}, "balanceOf", deployer);

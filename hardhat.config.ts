@@ -142,8 +142,8 @@ const config: HardhatUserConfig = {
      live: true,
      saveDeployments: true,
      tags: ["staging"],
-     gasPrice: 20000000000,
-     gasMultiplier: 2,
+     gasPrice: 5000000000,
+     gasMultiplier: 1,
     },
     /*
     matic: {
