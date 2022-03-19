@@ -10,14 +10,11 @@
         "internalType": "contract ComptrollerInterface",
         "name": "_comptroller",
         "type": "address"
-<<<<<<< HEAD
       },
       {
         "internalType": "uint256",
         "name": "_defaultVestingAmount",
         "type": "uint256"
-=======
->>>>>>> c6bdb72 (Add VestingDemo)
       }
     ],
     "stateMutability": "nonpayable",
@@ -42,29 +39,6 @@
         "internalType": "address",
         "name": "_recipient",
         "type": "address"
-<<<<<<< HEAD
-=======
-      },
-      {
-        "internalType": "uint256",
-        "name": "_vestingAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_vestingBegin",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_vestingCliff",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_vestingEnd",
-        "type": "uint256"
->>>>>>> c6bdb72 (Add VestingDemo)
       }
     ],
     "name": "create",
@@ -80,7 +54,6 @@
   },
   {
     "inputs": [],
-<<<<<<< HEAD
     "name": "defaultVestingAmount",
     "outputs": [
       {
@@ -93,9 +66,26 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "userToVestingContract",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
-=======
->>>>>>> c6bdb72 (Add VestingDemo)
     "name": "vestingToken",
     "outputs": [
       {
