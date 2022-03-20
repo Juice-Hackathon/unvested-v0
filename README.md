@@ -5,17 +5,23 @@ Built using Compound Protocol as a starting point, Vesting contracts use a stand
 
 Deployed to Kovan, Arbitrum Rinkeby, Harmony testnet, Aurora testnet.
 
+ETHDenver Bounty Winners:
+#### Harmony: Unique Usage for NFTs - 1st Prize
+#### Metis - 2nd Place
+#### Chainlink - Runner Up
+#### Arbitrum: Best DeFi App - 1st Prize
+#### Magic: A Magical User Experience - Winner
+
 # Contract Addresses
 
 ## Kovan
-- jUSDC: 0x2e51b18eB85690Cd866e03d88Cd2BCB86aC09c34
-- USDC: 0x7260F9380e0a9F986ac70C475415CDD112DeA0cd
-- LINK: 0xC6ee9811B23d9ED3F8660Cf1aD7da4569D466e09
-- ChainlinkPriceOracle: 0xd07C52356eB4537EB3C33787505c4e40BF568ca1
-- LendingController: 0x6F9aa88ba3673455087BB125bfDb7Fe7aacA283D
-- InterestRateModel: 0xDe649b9f1C8C2827c1b0D18C88765ED49b4D3260
-- StandardVestingContract - Borrower 1: 0x02746550f99A98c6f424C4977766AEC16DA0E00E
-- StandardVestingContract - Borrower 2: 0xB79203B78105a592C9E138E70c6D788e61EBd91A
+- jUSDC: 0x063f8C3a224abEd8e821B57e7152BCa0e633D432
+- USDC: 0xCec9b9aA30b51D2cdaE6586b7016FceC901aDC25
+- LINK: 0x5f105f831dcD69C7af3fA7919dA2e89cd291239C
+- ChainlinkPriceOracle: 0xc6CC421A38c724448219eDb68e9E59Ac389dC7D6
+- VestingDemoCreator: 0x840A47872E07f83B8cb2bAB63e66BB984dfbFe37
+- LendingController: 0xE85177c2E8c9C397fB971A13046317803C063cD7
+- InterestRateModel: 0x13584Ac0Befd9E37DCcA8B4D9aE143C2500A8e0e
 
 ## Arbitrum Rinkeby
 - jUSDC: 0xb91A8f3710879EfC365D16734a9D7e78DdB86128
@@ -24,8 +30,6 @@ Deployed to Kovan, Arbitrum Rinkeby, Harmony testnet, Aurora testnet.
 - ChainlinkPriceOracle: 0x57D8387279c8B030Ff3eB3E588626C901Af4893D
 - LendingController: 0x3b2A3077ecF80AAfA126dB18f641a148ad3848e8
 - InterestRateModel: 0x068eC2df4FBDA4A6428c3F029F659e521EA9c8B8
-- StandardVestingContract - Borrower 1: 0x5927774D41493f5b60A99e90E9277926f8dD6b8B
-- StandardVestingContract - Borrower 2: 0x513a4b6B29B325175590af580C0d1099b986f854
 
 ## Harmony Testnet
 - jUSDC: 0x125c0d97938c3e2EF7d236BaFCE8d4c927374137
@@ -34,8 +38,6 @@ Deployed to Kovan, Arbitrum Rinkeby, Harmony testnet, Aurora testnet.
 - ChainlinkPriceOracle: 0x400aF5d37438c0beB9Ae69b05919599b1E2fb556
 - LendingController: 0x19D46C4D663344646A29001aC39714c27Fbf0A17
 - InterestRateModel: 0xeBAe4bB9bD4774E143543Ad3c8A2c5e847308b83
-- StandardVestingContract - Borrower 1: 0xbB88e09385097878171346a59E709e24b53c4f71
-- StandardVestingContract - Borrower 2: 0x6C0933DB8C384CAc65dabfD0698368B017A4A1e9
 
 ## Aurora NEAR Testnet
 - jUSDC: 0x125c0d97938c3e2EF7d236BaFCE8d4c927374137
@@ -44,8 +46,6 @@ Deployed to Kovan, Arbitrum Rinkeby, Harmony testnet, Aurora testnet.
 - PriceOracle: 0x400aF5d37438c0beB9Ae69b05919599b1E2fb556
 - LendingController: 0x19D46C4D663344646A29001aC39714c27Fbf0A17
 - InterestRateModel: 0xeBAe4bB9bD4774E143543Ad3c8A2c5e847308b83
-- StandardVestingContract - Borrower 1: 0xbB88e09385097878171346a59E709e24b53c4f71
-- StandardVestingContract - Borrower 2: 0x6C0933DB8C384CAc65dabfD0698368B017A4A1e9
 
 ## METIS Testnet
 - jUSDC: 0x05b2880220D0f8C4d255856259A439A5F5D5fad6
@@ -54,5 +54,3 @@ Deployed to Kovan, Arbitrum Rinkeby, Harmony testnet, Aurora testnet.
 - PriceOracle: 0x400aF5d37438c0beB9Ae69b05919599b1E2fb556
 - LendingController: 0x19D46C4D663344646A29001aC39714c27Fbf0A17
 - InterestRateModel: 0xeBAe4bB9bD4774E143543Ad3c8A2c5e847308b83
-- StandardVestingContract - Borrower 1: 0xd516EA3cb011d5aCCDAa40F81bb41f975b7a0730
-- StandardVestingContract - Borrower 2: 0xbca55732A62b761Bf4BEa86c1024F7bDED9A3030
