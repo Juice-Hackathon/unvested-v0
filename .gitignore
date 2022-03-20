@@ -8,7 +8,6 @@ coverage.json
 .env
 .DS_Store
 deployments/localhost
-deployments/kovan/
 deployments/mainnet/
 deployments/arbitrum-testnet
 deployments/aurora-testnet

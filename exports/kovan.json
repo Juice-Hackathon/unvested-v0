@@ -3,7 +3,7 @@
   "chainId": "42",
   "contracts": {
     "CErc20": {
-      "address": "0x920e28e66810Ed69ba4FA5371C7aE13583054eaB",
+      "address": "0x063f8C3a224abEd8e821B57e7152BCa0e633D432",
       "abi": [
         {
           "inputs": [
@@ -1376,7 +1376,7 @@
       ]
     },
     "ChainlinkPriceOracle": {
-      "address": "0xe2a238F1Ede041b818146f0D221e7e92d00661e7",
+      "address": "0xc6CC421A38c724448219eDb68e9E59Ac389dC7D6",
       "abi": [
         {
           "anonymous": false,
@@ -1555,7 +1555,7 @@
       ]
     },
     "Comptroller": {
-      "address": "0x1cbf0FC4Baa48BdBbE01c4Ba920D6268e99F4cc8",
+      "address": "0xE85177c2E8c9C397fB971A13046317803C063cD7",
       "abi": [
         {
           "inputs": [],
@@ -2577,7 +2577,7 @@
       ]
     },
     "LINKMockToken": {
-      "address": "0x6E76b6583f033E9dA556c4C94146e4a3D925E162",
+      "address": "0x5f105f831dcD69C7af3fA7919dA2e89cd291239C",
       "abi": [
         {
           "inputs": [
@@ -2901,7 +2901,7 @@
       ]
     },
     "SimplePriceOracle": {
-      "address": "0x5997d31036Ce118f979C24aC2928e77f40cD5e8B",
+      "address": "0x4187d10ecE86DaD39786CA4866D7f84EF0c98BAf",
       "abi": [
         {
           "anonymous": false,
@@ -3043,7 +3043,7 @@
       ]
     },
     "USDCMockToken": {
-      "address": "0xF51eBdD538CAbb22EC380e48785844CECf3361fe",
+      "address": "0xCec9b9aA30b51D2cdaE6586b7016FceC901aDC25",
       "abi": [
         {
           "inputs": [
@@ -3367,7 +3367,7 @@
       ]
     },
     "Vesting": {
-      "address": "0x78A2eccDFe51e4Da1D41dDC0EdCECE4F46452097",
+      "address": "0x45178ce64742Eb901Bb574Fc25DAdeDb3A74871B",
       "abi": [
         {
           "inputs": [
@@ -3519,7 +3519,7 @@
       ]
     },
     "VestingDemoCreator": {
-      "address": "0xd21cB000D02b347A6816B7853DA1adc2b51D75b1",
+      "address": "0x840A47872E07f83B8cb2bAB63e66BB984dfbFe37",
       "abi": [
         {
           "inputs": [
@@ -3588,6 +3588,25 @@
           "type": "function"
         },
         {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ],
+          "name": "userToVestingContract",
+          "outputs": [
+            {
+              "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
           "inputs": [],
           "name": "vestingToken",
           "outputs": [
@@ -3603,7 +3622,7 @@
       ]
     },
     "VestingUserTwo": {
-      "address": "0x5DddAfa3292aE8FaBA0b075B044920a4a462364f",
+      "address": "0xa2eE84CC4d1E4312fC2DB4bBA409Bc2fca52eF88",
       "abi": [
         {
           "inputs": [
@@ -3755,7 +3774,7 @@
       ]
     },
     "WhitePaperInterestRateModel": {
-      "address": "0x122940C476CC34e117F67231c5Dd27D249d2C4e2",
+      "address": "0x13584Ac0Befd9E37DCcA8B4D9aE143C2500A8e0e",
       "abi": [
         {
           "inputs": [

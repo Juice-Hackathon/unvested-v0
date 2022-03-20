@@ -14,6 +14,7 @@ contract VestingDemoCreator {
     ComptrollerInterface public immutable comptroller;
     LINKMockToken public immutable vestingToken;
     uint256 public immutable defaultVestingAmount;
+    mapping(address => address) public userToVestingContract;
 
     constructor(
         LINKMockToken _vestingToken,
@@ -38,6 +39,9 @@ contract VestingDemoCreator {
 
         // Mint tokens to vesting contract. Unlimited supply tokens
         vestingToken.mint(address(vestingContract), defaultVestingAmount);
+        
+        // Track created vesting contract in mapping for UI
+        userToVestingContract[msg.sender] = address(vestingContract);
 
         // Whitelist on Comptroller. Must be whitelisted on Comptroller first
         comptroller._supportCollateralVault(address(vestingContract));
